@@ -1,0 +1,38 @@
+init(NAME,IFS,VULNS,PARAMS);
+
+//this is the general name which is not used for any evaluation
+string name=$NAME$;
+
+//this is to determine whether a called function is applicable to the current application
+string[] type="backupServer";
+
+//listening Port is needed for networked applications, if not applicable, then 0
+string[] listeningPort=["443"];
+
+string cloudBackupPort="5637";
+// boolean cloudBackupEnabled="true";
+
+// knownIpaddresses müssen hier für jeden attached client rein
+
+//the interfaces for this application
+interface[] bindingIf=$IFS$;
+
+if($VULNS$ != none){
+  string[] hasVuln=$VULNS$;
+};
+
+if($PARAMS$ != none){
+  string[] parameters=$PARAMS$;
+};
+
+//now the general variables for function evaluation
+//node refHost=REFHOST;
+
+// linked data will contain the data that are being delivered
+//usefulData[] dataLinked=LDATA;
+
+// if the linked data are stored locally, they will be contained in dataStored. if linkedData are fetched elsewhere, dataStored will contain credentials to fetch remote data from the database as well as dns names etc.
+//usefulData[] dataStored=CREDS,DNS etc;
+
+
+//credential[] acceptedCredentials=CREDS;

@@ -1,0 +1,1552 @@
+// include functions definitions
+include("functionsRealTiming.header");
+$hasEntry$="no";
+
+// instantiate helper element to allow for usage of helper functions
+helper helper1=new helper("helperFunctions");
+helper default1=new default("basicFunctions");
+
+
+// reuse probabilities for admin usernames and admin password
+$nameReuseWkt$=30;
+$pwReuseWkt$=30;
+
+//runtime variables for scenario creation
+
+$ClientNetsInLanA$=[marketingSN,accountingSN,adminSN];
+$sqlServerInDmzSn$=none;
+$sqlServerInServerSn$=none;
+$sqlServerInEngineeringServerSn$=none;
+$gitServersInEngineering$=none;
+$sapServerInServerSN$=none;
+$sapServers$=none;
+$localAd$=none;
+$tcInDmz$="none";
+
+
+$backupServerInServerSNexists$="false";
+$backupServerInEngineeringServerSNexists$="false";
+
+// set vectors for different HOST vulnerabilities
+$vulnsHost$=["meltdown"];
+
+
+// set vectors for different OS params
+$paramsOsXen$=["remoteShell"];
+$paramsOsWindows$=["remoteShell","smb","usbExchange","usbExchangeToProduction"];
+$paramsOsUbuntu$=["remoteShell","smb","usbExchange","usbExchangeToProduction"];
+
+
+// set vectors for different OS vulnerabilities
+$vulnsOsXen$=["privEscVuln","g2hReadEscalation","g2hRceEscalation"];
+$vulnsOsWindows$=["privEscVuln","eternalBlue"];
+$vulnsOsUbuntu$=["privEscVuln"];
+$vulnsOsWindowsClient$=["privEscVuln","eternalBlue","intraSubVulnA","intraSubVulnB"];
+$vulnsOsUbuntuClient$=["privEscVuln","intraSubVulnA","intraSubVulnB"];
+
+
+// set possible app parameters
+$paramsAppTc$=["jmxEnabled"];
+$paramsAppBackup$=["cloudBackupEnabled","hasRceOnClients"];
+
+// set probabilities for different APP parameters
+
+
+// set vectors for different APP vulnerabilities
+$vulnsAppTc$=["tcPrivEscVuln","httpPutVuln","jmxNoAuth"];
+$vulnsAppEx$=["mailRCE","defenderRCE"];
+
+$vulnsAppSap$=["unauthedUserRce","unauthedAdminRce","unauthedUserRead","unauthedAdminRead"];
+$vulnsAppGit$=["unauthedUserRce","unauthedAdminRce","unauthedUserRead","unauthedAdminRead"];
+$vulnsAppSql$=["unauthedUserRce","unauthedAdminRce","unauthedUserRead","unauthedAdminRead"];
+$vulnsAppAccounting$=["unauthedUserRce","unauthedAdminRce","unauthedUserRead","unauthedAdminRead"];
+$vulnsAppMarketing$=["unauthedUserRce","unauthedAdminRce","unauthedUserRead","unauthedAdminRead"];
+$vulnsAppLicensing$=["unauthedUserRce","unauthedAdminRce","unauthedUserRead","unauthedAdminRead"];
+$vulnsAppBackup$=["cloudBackupDefaultCreds","backupRce"];
+$vulnsAppSmb$=none;
+
+//now include the probabilities for specific Params and Vulns
+include("chances_low.snippet");
+
+// OS vuln from georgs test subVulnA
+//$intraSubVulnAProbValue$=$PROB([20,50,80])$;
+//$intraSubVulnAProb$=[$intraSubVulnAProbValue$];
+
+//$intraSubVulnBProbValue$=$PROB([10,20,30])$;
+//$intraSubVulnBProb$=[$intraSubVulnBProbValue$];
+
+// dieses flag unterscheidet sie scenario größe
+$scenarioSize$="mixed";
+
+if($scenarioSize$ == "l"){
+  $NremoteSN$=$PROB([1,2,3],[33,33])$;
+  $NinternetSN$=1;
+  $NdmzSN$=3;
+  $NserverSN$=9;
+  $NprinterSN$=$PROB([1,2,3],[33,33])$;
+  $NengineeringClientSN$=9;
+  $NengineeringServerSN$=5;
+  $NproductionSN$=4;
+  $NmarketingSN$=7;
+  $NaccountingSN$=7;
+  $NadminSN$=4;
+};
+
+if($scenarioSize$ == "m"){
+  $NremoteSN$=$PROB([1,2,3],[33,33])$;
+  $NinternetSN$=1;
+  $NdmzSN$=3;
+  $NserverSN$=7;
+  $NprinterSN$=$PROB([1,2,3],[33,33])$;
+  $NengineeringClientSN$=8;
+  $NengineeringServerSN$=4;
+  $NproductionSN$=3;
+  $NmarketingSN$=6;
+  $NaccountingSN$=5;
+  $NadminSN$=3;
+};
+
+if($scenarioSize$ == "s"){
+  $NremoteSN$=$PROB([1,2,3],[33,33])$;
+  $NinternetSN$=1;
+  $NdmzSN$=2;
+  $NserverSN$=4;
+  $NprinterSN$=$PROB([1,2,3],[33,33])$;
+  $NengineeringClientSN$=6;
+  $NengineeringServerSN$=2;
+  $NproductionSN$=1;
+  $NmarketingSN$=4;
+  $NaccountingSN$=4;
+  $NadminSN$=2;
+};
+
+if($scenarioSize$ == "mixed"){
+  $NremoteSN$=$PROB([1,2,3],[33,33])$;
+  $NinternetSN$=1;
+  $NdmzSN$=$PROB([2,3])$;
+  $NserverSN$=$PROB([4,5,6,7,8,9])$;
+  $NprinterSN$=$PROB([1,2,3])$;
+  $NengineeringClientSN$=$PROB([6,7,8,9])$;
+  $NengineeringServerSN$=$PROB([2,3,4,5])$;
+  $NproductionSN$=$PROB([1,2,3,4])$;
+  $NmarketingSN$=$PROB([4,5,6,7])$;
+  $NaccountingSN$=$PROB([4,5,6,7])$;
+  $NadminSN$=$PROB([2,3,4])$;
+};
+
+//counters for ip-addresses in various SNs
+$remoteIPcounter$=1;
+$internetIPcounter$=1;
+$dmzIPcounter$=1;
+$serverIPcounter$=1;
+$printerIPcounter$=1;
+$engineeringClientIPcounter$=1;
+$engineeringServerIPcounter$=1;
+$productionIPcounter$=1;
+$marketingIPcounter$=1;
+$accountingIPcounter$=1;
+$adminIPcounter$=1;
+
+$hC$=0;
+
+// pick procedure to construct application vector for later initialization
+//include("callAppSelect_dynamic_sm.snippet");
+include("callAppSelect_fixed_combined.snippet");
+//include("callAppSelect_fixed1.snippet");
+//$selectedServerApps$+=[appBackupServer];
+
+//defintion of subnets appending to RT variables and populating with hosts
+include("subnets.snippet");
+
+
+// definition of generic OSs in the various subnets
+// as well as initialization of $backupServerSNclients$ for potential backup use for marketing, accounting and windows-based adminSN machines
+include("os.snippet");
+
+
+actor defender1=new defender("captainPlanet","true","true","true","true","true","true");
+
+//now we deploy applications in the Server SN, for every serverApp, we set up a complete VM
+
+$cSN$=serverSN;
+
+for($ServerApp$ in $selectedServerApps$){
+
+// this variable is to check if a server has really been setup that needs to be enlisted and assigned to hypervisor
+  $serverSNhostSetup$="true";
+
+  //pick xen host from this pool
+  $hyperV$=$PROB($serverSNXenhosts$)$;
+
+  if($ServerApp$ == appAdServer){
+
+    // now merge lists of hosts to be attached
+    for($node$ in $marketingSNhosts$){
+      $adClients$+=[$node$];
+    };
+    for($node$ in $accountingSNhosts$){
+      $adClients$+=[$node$];
+    };
+    for($node$ in $remoteSNhosts$){
+      $adClients$+=[$node$];
+    };
+    for($node$ in $adminSNhosts$){
+      $adAdmins$+=[$node$];
+    };
+
+    // create (virtual) node with os, app etc.
+    $osType$=windows;
+    $curOS$=$osType$;
+    include("callAssignHostVulns.snippet");
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+
+
+    node vHost$ServerApp$$cSN$$hC$=new vAdServer("vHost$ServerApp$$cSN$",$hyperV$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$adClients$,$adAdmins$,"server",$vulnerabilities$,$hostVulns$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+    $serverIPcounter$+=1;
+    $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+    $localAd$=vHost$ServerApp$$cSN$$hC$;
+
+    $backupServerSNclients$+=[vHost$ServerApp$$cSN$$hC$];
+  };
+
+  if($ServerApp$ == appTcServer){
+    // data stored locally or remote?
+    $storeLocation$=$PROB(["local","remote"])$;
+    if($storeLocation$ == "remote"){
+      // determine if we want to create new instance or reuse existing one
+      $sqlInst$=$PROB(["new","reuse"])$;
+      if($sqlServerInServerSn$ == none){
+        $create$="true";
+        $mode$="create";
+      };
+      if($sqlServerInServerSn$ != none){
+        if($sqlInst$ == "new"){
+          $create$="true";
+          $mode$="create";
+        };
+        if($sqlInst$ == "reuse"){
+          $create$="false";
+          $mode$="reuse";
+        };
+      };
+    };
+    if($storeLocation$ == "local"){
+      $mode$="local";
+    };
+
+    // we assume same accessibility as for the webServer which is why we reuse $adClients$
+
+    // this arbitrary usefulData is just for testing only and does not impact simulation for zero value
+    usefulData tcIntrasite$hC$=new usefulData("TCSeite$hC$","html",0,0);
+    // $usefulData$+=[tcIntrasite$hC$];
+    $usefulDataServerSN$+=[tcIntrasite$hC$];
+    $webdata$=[tcIntrasite$hC$];
+
+    // create (virtual) node with os, app etc.
+    $osType$=ubuntu;
+
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+
+    $SqlVulns$=none;
+    $curAPP$=appSqlServer;
+    include("callAssignAppVulns.snippet");
+    $SqlVulns$=$appVulns$;
+
+    $curAPP$=$ServerApp$;
+    include("callAssignAppVulns.snippet");
+    include("callAssignAppParams.snippet");
+    include("callAssignOsParams.snippet");
+    include("callAssignHostVulns.snippet");
+
+    node vHost$ServerApp$$cSN$$hC$=new vTcServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$osType$,$webdata$,$adClients$,$mode$,none,"server",$vulnerabilities$,$appVulns$,$hostVulns$,$appParams$,$osParams$,$SqlVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    $serverIPcounter$+=1;
+    $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+
+    if($osType$ == windows){
+      $backupServerSNclients$+=[vHost$ServerApp$$cSN$$hC$];
+      $addedAdClients$+=[vHost$ServerApp$$cSN$$hC$];
+    };
+
+    if($localAd$ != none){
+      fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,$localAd$.tmpIp],["1337"]);
+    };
+
+    // if data store not local, we generate new sql server
+    if($storeLocation$ == "remote"){
+      // deploy credential from tc.dataStored to sql accepted Credentials
+      if($create$ == "true"){
+
+        $hyperVa$=$PROB($serverSNXenhosts$)$;
+        $osType$=ubuntu;
+        $curOS$=$osType$;
+        $curAPP$=appSqlServer;
+        include("callAssignAppVulns.snippet");
+        include("callAssignOsVulns.snippet");
+        include("callAssignOsParams.snippet");
+        include("callAssignHostVulns.snippet");
+
+        string vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.level="admin";
+
+        node vHost$ServerApp$toSQL$cSN$$serverIPcounter$=new vSqlServer("vHost$ServerApp$toSQL$cSN$$serverIPcounter$",$hyperVa$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$osType$,$webdata$,vHost$ServerApp$$cSN$$hC$.tmpLinkCreds,"server",$vulnerabilities$,$hostVulns$,$osParams$,$appVulns$,$nameReuseWkt$,$pwReuseWkt$);
+
+        ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=vHost$ServerApp$toSQL$cSN$$serverIPcounter$.tmpIp;
+
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,vHost$ServerApp$toSQL$cSN$$serverIPcounter$.tmpIp],["3306"]);
+
+        $allHosts$+=[vHost$ServerApp$toSQL$cSN$$serverIPcounter$];
+        $serverSNhosts$+=[vHost$ServerApp$toSQL$cSN$$serverIPcounter$];
+
+        if($osType$ == windows){
+          $backupServerSNclients$+=[vHost$ServerApp$toSQL$cSN$$serverIPcounter$];
+          $addedAdClients$+=[vHost$ServerApp$toSQL$cSN$$serverIPcounter$];
+        };
+
+        //pick xen host from this pool and assign vHost there
+
+        node $hyperVa$.os.vms=vHost$ServerApp$toSQL$cSN$$serverIPcounter$;
+
+        // now append new sql server to $sqlServerInServerSn$
+        if($sqlServerInServerSn$ == none){
+          $sqlServerInServerSn$=[vHost$ServerApp$toSQL$cSN$$serverIPcounter$];
+        };
+        if($sqlServerInServerSn$ != none){
+          $sqlServerInServerSn$+=[vHost$ServerApp$toSQL$cSN$$serverIPcounter$];
+        };
+        $serverIPcounter$+=1;
+
+      };
+      if($create$ == "false"){
+
+        $pickedSqlInServer$=$PROB($sqlServerInServerSn$)$;
+        ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=$pickedSqlInServer$.tmpIp;
+
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,$pickedSqlInServer$.tmpIp],["3306"]);
+
+        string vHost$ServerApp$$cSN$$hC$.tmpLinkCreds="user";
+
+        credential $pickedSqlInServer$.os.applications.acceptedCredentials=vHost$ServerApp$$cSN$$hC$.tmpLinkCreds;
+        usefulData[] $pickedSqlInServer$.os.applications.dataStored=$webdata$;
+        for($ITEM$ in $webdata$){
+          username $ITEM$.owner=vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.username;
+        };
+
+      };
+    };
+
+  };
+
+  if($ServerApp$ == appMarketingServer){
+    // we need to prepare LDATA and ADMINCRED
+    credential $ServerApp$serverSN$serverIPcounter$admincred=new credential("marketing$hC$","marUser$hC$","marPW$hC$","admin",$nameReuseWkt$,$pwReuseWkt$);
+    $marData$=none;
+    for($X$ in range(1,3)){
+      usefulData marData$X$$hC$=new usefulData("marData$X$$hC$","word",0,0);
+
+      if($marData$ != none){
+        $marData$+=[marData$X$$hC$];
+      };
+      if($marData$ == none){
+        $marData$=[marData$X$$hC$];
+      };
+
+      $usefulData$+=[marData$X$$hC$];
+      $usefulDataServerSN$+=[marData$X$$hC$];
+    };
+    // data stored locally or remote? 
+    $storeLocation$=$PROB(["local","remote"])$;
+    //$storeLocation$="remote";
+    if($storeLocation$ == "remote"){
+      // determine if we want to create new instance or reuse existing one
+      $sqlInst$=$PROB(["new","reuse"])$;
+      if($sqlServerInServerSn$ == none){
+        $create$="true";
+        $mode$="create";
+      };
+      if($sqlServerInServerSn$ != none){
+        if($sqlInst$ == "new"){
+          $create$="true";
+          $mode$="create";
+        };
+        if($sqlInst$ == "reuse"){
+          $create$="false";
+          $mode$="reuse";
+        };
+      };
+    };
+    if($storeLocation$ == "local"){
+      $mode$="local";
+    };
+
+    // create (virtual) node with os, app etc.
+    $osType$=ubuntu;
+
+    $curOS$=$osType$;
+
+    $curAPP$=$ServerApp$;
+    $MarVulns$=none;
+    include("callAssignAppVulns.snippet");
+    $MarVulns$=$appVulns$;
+
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+
+    include("callAssignHostVulns.snippet");
+
+    $potentialClients$=$marketingSNhosts$;
+    $pickChance$=[50];
+    include("callPickHostsByChance.snippet");
+
+    $SqlVulns$=none;
+    $curAPP$=appSqlServer;
+    include("callAssignAppVulns.snippet");
+    $SqlVulns$=$appVulns$;
+    $clientPWreuse$="true";
+    $clientPWreuseChance$=50;
+
+
+    node vHost$ServerApp$$cSN$$hC$=new vMarketingServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$osType$,$marData$,$ServerApp$serverSN$serverIPcounter$admincred,$finClientList$,$clientPWreuse$,$clientPWreuseChance$,"server",none,$mode$,$vulnerabilities$,$hostVulns$,$osParams$,$SqlVulns$,$MarVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    $serverIPcounter$+=1;
+    $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+
+    if($osType$ == windows){
+      $backupServerSNclients$+=[vHost$ServerApp$$cSN$$hC$];
+      $addedAdClients$+=[vHost$ServerApp$$cSN$$hC$];
+    };
+
+    // if data store not local, we generate new sql server
+    if($storeLocation$ == "remote"){
+
+      if($create$ == "true"){
+        //we need to pick a new server for assignment
+        $hyperVa$=$PROB($serverSNXenhosts$)$;
+        $osType$=windows;
+        $curOS$=$osType$;
+        $curAPP$=appSqlServer;
+        include("callAssignAppVulns.snippet");
+        include("callAssignOsVulns.snippet");
+        include("callAssignOsParams.snippet");
+        include("callAssignHostVulns.snippet");
+
+        string vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.level="admin";
+
+        node vHost$ServerApp$toSQL$cSN$$hC$=new vSqlServer("vHost$ServerApp$toSQL$cSN$$hC$",$hyperVa$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$osType$,$marData$,vHost$ServerApp$$cSN$$hC$.tmpLinkCreds,"server",$vulnerabilities$,$hostVulns$,$osParams$,$appVulns$,$nameReuseWkt$,$pwReuseWkt$);
+        string vHost$ServerApp$toSQL$cSN$$hC$.newlyCreatedFor="vHost$ServerApp$$cSN$$hC$";
+        string vHost$ServerApp$$cSN$$hC$.gotNewSqlServer="vHost$ServerApp$toSQL$cSN$$hC$";
+
+        ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=vHost$ServerApp$toSQL$cSN$$hC$.tmpIp;
+
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,vHost$ServerApp$toSQL$cSN$$hC$.tmpIp],["3306"]);
+
+        $allHosts$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        $serverSNhosts$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        if($osType$ == windows){
+          $backupServerSNclients$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+          $addedAdClients$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        };
+        $serverIPcounter$+=1;
+
+        //pick xen host from this pool and assign vHost there
+        node $hyperVa$.os.vms=vHost$ServerApp$toSQL$cSN$$hC$;
+
+        // now append new sql server to $sqlServerInDmzSn$
+        if($sqlServerInServerSn$ == none){
+          $sqlServerInServerSn$=[vHost$ServerApp$toSQL$cSN$$hC$];
+        };
+        if($sqlServerInServerSn$ != none){
+          $sqlServerInServerSn$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        };
+      };
+      if($create$ == "false"){
+        $pickedSqlInServer$=$PROB($sqlServerInServerSn$)$;
+        string $pickedSqlInServer$.reusedBy="vHost$ServerApp$$cSN$$hC$";
+        string vHost$ServerApp$$cSN$$hC$.reusingSqlServer="$pickedSqlInServer$";
+        ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=$pickedSqlInServer$.tmpIp;
+
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,$pickedSqlInServer$.tmpIp],["3306"]);
+
+        string vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.level="user";
+
+        credential $pickedSqlInServer$.os.applications.acceptedCredentials=vHost$ServerApp$$cSN$$hC$.tmpLinkCreds;
+        usefulData[] $pickedSqlInServer$.os.applications.dataStored=$marData$;
+        for($ITEM$ in $marData$){
+          username $ITEM$.owner=vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.username;
+        };
+
+      };
+    };
+
+  };
+
+
+  if($ServerApp$ == appBackupServer){
+    $backupServerInServerSNexists$="true";
+// we mark that no server has been setup so we can omit the assignment at the end of the loop
+    $serverSNhostSetup$="false";
+// processed in the end
+  };
+
+  if($ServerApp$ == appAccountingServer){
+    // we need to prepare LDATA and ADMINCRED
+    credential $ServerApp$serverSN$serverIPcounter$admincred=new credential("acclala","acuser","accpw","admin",$nameReuseWkt$,$pwReuseWkt$);
+    $accData$=none;
+    for($X$ in range(1,3)){
+      usefulData accData$X$$hC$=new usefulData("accData$X$$hC$","paycheck",0,0);
+
+      if($accData$ != none){
+        $accData$+=[accData$X$$hC$];
+      };
+      if($accData$ == none){
+        $accData$=[accData$X$$hC$];
+      };
+
+      $usefulData$+=[accData$X$$hC$];
+      $usefulDataServerSN$+=[accData$X$$hC$];
+    };
+    // data stored locally or remote?
+    $storeLocation$=$PROB(["local","remote"])$;
+    //$storeLocation$="remote";
+    if($storeLocation$ == "remote"){
+      // determine if we want to create new instance or reuse existing one
+      $sqlInst$=$PROB(["new","reuse"])$;
+      if($sqlServerInServerSn$ == none){
+        $create$="true";
+        $mode$="create";
+      };
+      if($sqlServerInServerSn$ != none){
+        if($sqlInst$ == "new"){
+          $create$="true";
+          $mode$="create";
+        };
+        if($sqlInst$ == "reuse"){
+          $create$="false";
+          $mode$="reuse";
+        };
+      };
+    };
+    if($storeLocation$ == "local"){
+      $mode$="local";
+    };
+
+    // create (virtual) node with os, app etc.
+    $osType$=windows;
+
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+
+    $curAPP$=$ServerApp$;
+    $AccVulns$=none;
+    include("callAssignAppVulns.snippet");
+    $AccVulns$=$appVulns$;
+
+    $potentialClients$=$accountingSNhosts$;
+    $pickChance$=[50];
+    include("callPickHostsByChance.snippet");
+
+    include("callAssignHostVulns.snippet");
+
+    $SqlVulns$=none;
+    $curAPP$=appSqlServer;
+    include("callAssignAppVulns.snippet");
+    $SqlVulns$=$appVulns$;
+    $clientPWreuse$="true";
+    $clientPWreuseChance$=50;
+
+    node vHost$ServerApp$$cSN$$hC$=new vAccountingServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$osType$,$accData$,$ServerApp$serverSN$serverIPcounter$admincred,$finClientList$,$clientPWreuse$,$clientPWreuseChance$,"server",none,$mode$,$vulnerabilities$,$hostVulns$,$osParams$,$SqlVulns$,$AccVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    $serverIPcounter$+=1;
+    $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+
+    if($osType$ == windows){
+      $backupServerSNclients$+=[vHost$ServerApp$$cSN$$hC$];
+      $addedAdClients$+=[vHost$ServerApp$$cSN$$hC$];
+    };
+
+    // if data store not local, we generate new sql server
+    if($storeLocation$ == "remote"){
+
+      if($create$ == "true"){
+
+        $hyperVa$=$PROB($serverSNXenhosts$)$;
+        $osType$=windows;
+        $curOS$=$osType$;
+        $curAPP$=appSqlServer;
+        include("callAssignAppVulns.snippet");
+        include("callAssignOsVulns.snippet");
+        include("callAssignOsParams.snippet");
+
+        include("callAssignHostVulns.snippet");
+
+//        string vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.level="admin";
+
+        node vHost$ServerApp$toSQL$cSN$$hC$=new vSqlServer("vHost$ServerApp$toSQL$cSN$$hC$",$hyperVa$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$osType$,$accData$,vHost$ServerApp$$cSN$$hC$.tmpLinkCreds,"server",$vulnerabilities$,$hostVulns$,$osParams$,$appVulns$,$nameReuseWkt$,$pwReuseWkt$);
+        string vHost$ServerApp$toSQL$cSN$$hC$.newlyCreatedFor="vHost$ServerApp$$cSN$$hC$";
+        string vHost$ServerApp$$cSN$$hC$.gotNewSqlServer="vHost$ServerApp$toSQL$cSN$$hC$";
+
+        ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=vHost$ServerApp$toSQL$cSN$$hC$.tmpIp;
+
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,vHost$ServerApp$toSQL$cSN$$hC$.tmpIp],["3306"]);
+
+        $allHosts$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        $serverSNhosts$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        if($osType$ == windows){
+          $backupServerSNclients$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+          $addedAdClients$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        };
+        $serverIPcounter$+=1;
+
+        //pick xen host from this pool and assign vHost there
+        node $hyperVa$.os.vms=vHost$ServerApp$toSQL$cSN$$hC$;
+
+        // now append new sql server to $sqlServerInDmzSn$
+        if($sqlServerInServerSn$ == none){
+          $sqlServerInServerSn$=[vHost$ServerApp$toSQL$cSN$$hC$];
+        };
+        if($sqlServerInServerSn$ != none){
+          $sqlServerInServerSn$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        };
+      };
+      if($create$ == "false"){
+        $pickedSqlInServer$=$PROB($sqlServerInServerSn$)$;
+        string $pickedSqlInServer$.reusedBy="vHost$ServerApp$$cSN$$hC$";
+        string vHost$ServerApp$$cSN$$hC$.reusingSqlServer="$pickedSqlInServer$";
+        ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=$pickedSqlInServer$.tmpIp;
+
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,$pickedSqlInServer$.tmpIp],["3306"]);
+
+        string vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.level="user";
+
+        credential $pickedSqlInServer$.os.applications.acceptedCredentials=vHost$ServerApp$$cSN$$hC$.tmpLinkCreds;
+        usefulData[] $pickedSqlInServer$.os.applications.dataStored=$accData$;
+        for($ITEM$ in $accData$){
+          username $ITEM$.owner=vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.username;
+        };
+
+      };
+    };
+
+  };
+
+  if($ServerApp$ == appSapServer){
+    // we need to prepare LDATA and ADMINCRED
+    credential $ServerApp$serverSN$serverIPcounter$admincred=new credential("sap$hC$","sapuser$hC$","sappw$hC$","admin",$nameReuseWkt$,$pwReuseWkt$);
+    $sapData$=none;
+    for($X$ in range(1,3)){
+      usefulData sapData$X$$hC$=new usefulData("sapData$X$$hC$","ww",0,0);
+
+      if($sapData$ != none){
+        $sapData$+=[sapData$X$$hC$];
+      };
+      if($sapData$ == none){
+        $sapData$=[sapData$X$$hC$];
+      };
+
+      $usefulData$+=[sapData$X$$hC$];
+      $usefulDataServerSN$+=[sapData$X$$hC$];
+    };
+
+    // create (virtual) node with os, app etc.
+    $osType$=windows;
+
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+
+    include("callAssignHostVulns.snippet");
+
+    $curAPP$=$ServerApp$;
+    $SapVulns$=none;
+    include("callAssignAppVulns.snippet");
+    $SapVulns$=$appVulns$;
+
+    $potentialClients$=$accountingSNhosts$;
+    $pickChance$=[50];
+    include("callPickHostsByChance.snippet");
+    $clientPWreuse$="true";
+    $clientPWreuseChance$=50;
+
+    node vHost$ServerApp$$cSN$$hC$=new vSapServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$sapData$,$ServerApp$serverSN$serverIPcounter$admincred,$finClientList$,$clientPWreuse$,$clientPWreuseChance$,"server",none,$vulnerabilities$,$hostVulns$,$osParams$,$SapVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    $serverIPcounter$+=1;
+    $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+    if($osType$ == windows){
+      $backupServerSNclients$+=[vHost$ServerApp$$cSN$$hC$];
+      $addedAdClients$+=[vHost$ServerApp$$cSN$$hC$];
+    };
+    $sapServerInServerSN$=vHost$ServerApp$$cSN$$hC$;
+    if($sapServers$ != none){
+      for($si$ in $sapServers$){
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,$si$.tmpIp],["7270","3200"]);
+      };
+      $sapServers$+=[vHost$ServerApp$$cSN$$hC$];
+    };
+    if($sapServers$ == none){
+      $sapServers$=[vHost$ServerApp$$cSN$$hC$];
+    };
+  };
+
+  if($serverSNhostSetup$ == "true"){
+    $serverSNhosts$+=[vHost$ServerApp$$cSN$$hC$];
+
+    //assign vHost  to previously selected host
+    node $hyperV$.os.vms=vHost$ServerApp$$cSN$$hC$;
+    $hC$+=1;
+  };
+};
+
+
+$cSN$=dmzSN;
+
+// which clients get access?
+for($node$ in $marketingSNhosts$){
+  $webClients$+=[$node$];
+};
+for($node$ in $accountingSNhosts$){
+  $webClients$+=[$node$];
+};
+for($node$ in $internetSNhosts$){
+  $webClients$+=[$node$];
+};
+for($node$ in $remoteSNhosts$){
+  $webClients$+=[$node$];
+};
+
+for($DmzApp$ in $selectedDmzApps$){
+
+  //pick xen host from this pool
+  $hyperV$=$PROB($dmzSNXenhosts$)$;
+
+  if($DmzApp$ == appWebServer){
+
+    // data stored locally or remote?
+    $storeLocation$=$PROB(["local","remote"])$;
+    if($storeLocation$ == "remote"){
+      // determine if we want to create new instance or reuse existing one
+      $sqlInst$=$PROB(["new","reuse"])$;
+      if($sqlServerInDmzSn$ == none){
+        $create$="true";
+        $mode$="create";
+      };
+      if($sqlServerInDmzSn$ != none){
+        if($sqlInst$ == "new"){
+          $create$="true";
+          $mode$="create";
+        };
+        if($sqlInst$ == "reuse"){
+          $create$="false";
+          $mode$="reuse";
+        };
+      };
+    };
+    if($storeLocation$ == "local"){
+      $mode$="local";
+    };
+
+
+    // this arbitrary usefulData is just for testing
+    usefulData website$hC$=new usefulData("Homepage$hC$","html",0,0);
+    $webdata$=[website$hC$];
+    // $usefulData$+=[website$hC$];
+    $usefulDataDmzSN$+=[website$hC$];
+
+    // create (virtual) node with os, app etc.
+    $osType$=ubuntu;
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+
+    include("callAssignHostVulns.snippet");
+
+
+    node vHost$DmzApp$$cSN$$hC$=new vWebServer("vHost$DmzApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$dmzSNprefix$,$dmzIPcounter$,$osType$,$webdata$,$webClients$,"dmz",$mode$,$vulnerabilities$,$hostVulns$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+
+    $dmzIPcounter$+=1;
+    $allHosts$+=[vHost$DmzApp$$cSN$$hC$];
+
+    if($osType$ == windows){
+      $backupServerSNclients$+=[vHost$DmzApp$$cSN$$hC$];
+      $addedAdClients$+=[vHost$DmzApp$$cSN$$hC$];
+    };
+
+    // now handle local / remote storage
+
+    if($mode$ == "local"){
+      usefulData[] vHost$DmzApp$$cSN$$hC$.os.applications.dataStored=$webdata$;
+    };
+
+    if($mode$ == "create"){
+
+      //we need to pick a new server for assignment
+      $hyperVa$=$PROB($dmzSNXenhosts$)$;
+      $osType$=ubuntu;
+      $curOS$=$osType$;
+      $curAPP$=appSqlServer;
+      include("callAssignAppVulns.snippet");
+      include("callAssignOsVulns.snippet");
+      include("callAssignOsParams.snippet");
+
+      include("callAssignHostVulns.snippet");
+
+      node vHost$DmzApp$toSQL$cSN$$hC$=new vSqlServer("vHost$DmzApp$toSQL$cSN$$hC$",$hyperVa$.belongsToSubnet,$dmzSNprefix$,$dmzIPcounter$,$osType$,$webdata$,vHost$DmzApp$$cSN$$hC$.tmpLinkCreds,"dmz",$vulnerabilities$,$hostVulns$,$osParams$,$appVulns$,$nameReuseWkt$,$pwReuseWkt$);
+
+
+      fwallow vHost$DmzApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$DmzApp$$cSN$$hC$.tmpIp,vHost$DmzApp$toSQL$cSN$$hC$.tmpIp],["3306"]);
+
+      ipaddress vHost$DmzApp$$cSN$$hC$.os.applications.dataStored=vHost$DmzApp$toSQL$cSN$$hC$.tmpIp;
+
+      $allHosts$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+      if($osType$ == windows){
+        $backupServerSNclients$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+        $addedAdClients$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+      };
+      $dmzIPcounter$+=1;
+
+
+      //pick xen host from this pool and assign vHost there
+      node $hyperVa$.os.vms=vHost$DmzApp$toSQL$cSN$$hC$;
+
+      // now append new sql server to $sqlServerInDmzSn$
+      if($sqlServerInDmzSn$ == none){
+        $sqlServerInDmzSn$=[vHost$DmzApp$toSQL$cSN$$hC$];
+      };
+      if($sqlServerInDmzSn$ != none){
+        $sqlServerInDmzSn$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+      };
+      $dmzSNhosts$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+    };
+    if($mode$ == "reuse"){
+      $pickedSqlInDmz$=$PROB($sqlServerInDmzSn$)$;
+      ipaddress vHost$DmzApp$$cSN$$hC$.os.applications.dataStored=$pickedSqlInDmz$.tmpIp;
+      fwallow vHost$DmzApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$DmzApp$$cSN$$hC$.tmpIp,$pickedSqlInDmz$.tmpIp],["3306"]);
+
+      for($ITEM$ in $webdata$){
+        username $ITEM$.owner=vHost$DmzApp$$cSN$$hC$.tmpLinkCreds.username;
+      };
+      credential $pickedSqlInDmz$.os.applications.acceptedCredentials=$DmzApp$toSQL$cSN$Cred$hC$;
+      usefulData $pickedSqlInDmz$.os.applications.dataStored=$webdata$;
+
+    };
+
+  };
+
+  if($DmzApp$ == appTcServer){
+    // data stored locally or remote?
+    $storeLocation$=$PROB(["local","remote"])$;
+    if($storeLocation$ == "remote"){
+      // determine if we want to create new instance or reuse existing one
+      $sqlInst$=$PROB(["new","reuse"])$;
+      if($sqlServerInDmzSn$ == none){
+        $create$="true";
+        $mode$="create";
+      };
+      if($sqlServerInDmzSn$ != none){
+        if($sqlInst$ == "new"){
+          $create$="true";
+          $mode$="create";
+        };
+        if($sqlInst$ == "reuse"){
+          $create$="false";
+          $mode$="reuse";
+        };
+      };
+    };
+    if($storeLocation$ == "local"){
+      $mode$="local";
+    };
+
+    // we assume same accessibility as for the webServer which is why we reuse $webClients$
+
+    // this arbitrary usefulData is just for testing
+    usefulData tcsite$hC$=new usefulData("TCSeite$hC$","html",0,0);
+    $webdata$=[tcsite$hC$];
+    // $usefulData$+=[tcsite$hC$];
+    $usefulDataDmzSN$+=[tcsite$hC$];
+
+    // create (virtual) node with os, app etc.
+    $osType$=ubuntu;
+
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+
+    $SqlVulns$=none;
+    $curAPP$=appSqlServer;
+    include("callAssignAppVulns.snippet");
+    $SqlVulns$=$appVulns$;
+
+    $curAPP$=$DmzApp$;
+    include("callAssignAppVulns.snippet");
+    include("callAssignAppParams.snippet");
+
+    include("callAssignHostVulns.snippet");
+
+    for($vuln$ in $appVulns$){
+      if($vuln$ == "httpPutVuln"){
+        $hasEntry$="yes";
+      };
+      if($vuln$ == "jmxNoAuth"){
+        for($param$ in $appParams$){
+          if($param$ == "jmxEnabled"){
+            $hasEntry$="yes";
+          };
+        };
+      };
+    };
+
+    node vHost$DmzApp$$cSN$$hC$=new vTcServer("vHost$DmzApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$dmzSNprefix$,$dmzIPcounter$,$osType$,$webdata$,$webClients$,$mode$,none,"dmz",$vulnerabilities$,$appVulns$,$hostVulns$,$appParams$,$osParams$,$SqlVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    $dmzIPcounter$+=1;
+    $allHosts$+=[vHost$DmzApp$$cSN$$hC$];
+    if($tcInDmz$ != "none"){
+      $tcInDmz$+=[vHost$DmzApp$$cSN$$hC$];
+    };
+    if($tcInDmz$ == "none"){
+      $tcInDmz$=[vHost$DmzApp$$cSN$$hC$];
+    };
+
+    if($osType$ == windows){
+      $backupServerSNclients$+=[vHost$DmzApp$$cSN$$hC$];
+      $addedAdClients$+=[vHost$DmzApp$$cSN$$hC$];
+    };
+
+    if($localAd$ != none){
+      fwallow vHost$DmzApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$DmzApp$$cSN$$hC$.tmpIp,$localAd$.tmpIp],["1337"]);
+    };
+
+    // if data store not local, we generate new sql server
+    if($storeLocation$ == "remote"){
+
+      // deploy credential from tc.dataStored to sql accepted Credentials
+      if($create$ == "true"){
+
+        //we need to pick a new server for assignment
+        $hyperVa$=$PROB($dmzSNXenhosts$)$;
+        $osType$=ubuntu;
+        $curOS$=$osType$;
+        $curAPP$=appSqlServer;
+        include("callAssignAppVulns.snippet");
+        include("callAssignOsVulns.snippet");
+        include("callAssignOsParams.snippet");
+
+        include("callAssignHostVulns.snippet");
+
+        string vHost$DmzApp$$cSN$$hC$.tmpLinkCreds.level="admin";
+
+        node vHost$DmzApp$toSQL$cSN$$hC$=new vSqlServer("vHost$DmzApp$toSQL$cSN$$hC$",$hyperVa$.belongsToSubnet,$dmzSNprefix$,$dmzIPcounter$,$osType$,$webdata$,vHost$DmzApp$$cSN$$hC$.tmpLinkCreds,"dmz",$vulnerabilities$,$hostVulns$,$osParams$,$appVulns$,$nameReuseWkt$,$pwReuseWkt$);
+
+        ipaddress vHost$DmzApp$$cSN$$hC$.os.applications.dataStored=vHost$DmzApp$toSQL$cSN$$hC$.tmpIp;
+
+        fwallow vHost$DmzApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$DmzApp$$cSN$$hC$.tmpIp,vHost$DmzApp$toSQL$cSN$$hC$.tmpIp],["3306"]);
+
+        $allHosts$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+        if($osType$ == windows){
+          $backupServerSNclients$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+          $addedAdClients$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+        };
+        $dmzIPcounter$+=1;
+
+        //pick xen host from this pool and assign vHost there
+        node $hyperVa$.os.vms=vHost$DmzApp$toSQL$cSN$$hC$;
+
+        // now append new sql server to $sqlServerInDmzSn$
+        if($sqlServerInDmzSn$ == none){
+          $sqlServerInDmzSn$=[vHost$DmzApp$toSQL$cSN$$hC$];
+        };
+        if($sqlServerInDmzSn$ != none){
+          $sqlServerInDmzSn$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+        };
+        $dmzSNhosts$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+      };
+      if($create$ == "false"){
+        $pickedSqlInDmz$=$PROB($sqlServerInDmzSn$)$;
+        ipaddress vHost$DmzApp$$cSN$$hC$.os.applications.dataStored=$pickedSqlInDmz$.tmpIp;
+        fwallow vHost$DmzApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$DmzApp$$cSN$$hC$.tmpIp,$pickedSqlInDmz$.tmpIp],["3306"]);
+
+        string vHost$DmzApp$$cSN$$hC$.tmpLinkCreds.level="user";
+
+        for($ITEM$ in $webdata$){
+          username $ITEM$.owner=vHost$DmzApp$$cSN$$hC$.tmpLinkCreds.username;
+        };
+        credential $pickedSqlInDmz$.os.applications.acceptedCredentials=vHost$DmzApp$$cSN$$hC$.tmpLinkCreds;
+        usefulData $pickedSqlInDmz$.os.applications.dataStored=$webdata$;
+
+      };
+    };
+  };
+
+  if($DmzApp$ == appExchangeServer){
+    // TODO AD must exist for this so intergate some checks here
+    // data stored locally or remote?
+    $storeLocation$=$PROB(["local","remote"])$;
+
+    // we assume same accessibility as for the webServer which is why we reuse $webClients$
+
+    // integrate dataLinked for email retrieval emulation
+    // TODO i suggest to create one usefulData element per valid user and link it here (this is testing only)
+    for($cl$ in $adClients$){
+      $mailClients$+=[$cl$];
+    };
+    for($cl$ in $adAdmins$){
+      $mailClients$+=[$cl$];
+    };
+    $mailboxes$=none;
+    for($item$ in $mailClients$){
+      usefulData mailbox$item$$hC$=new usefulData("mailbox$item$$hC$","email",0,0);
+      username mailbox$item$$hC$.owner=$item$.os.tmpInitCred.username;
+
+      if($mailboxes$ != none){
+        $mailboxes$+=[mailbox$item$$hC$];
+      };
+      if($mailboxes$ == none){
+        $mailboxes$=[mailbox$item$$hC$];
+      };
+
+      $usefulData$+=[mailbox$item$$hC$];
+      $usefulDataDmzSN$+=[mailbox$item$$hC$];
+    };
+
+    // create (virtual) node with os, app etc.
+    $osType$=windows;
+
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+
+    $SqlVulns$=none;
+    $curAPP$=appSqlServer;
+    include("callAssignAppVulns.snippet");
+    $SqlVulns$=$appVulns$;
+
+    $curAPP$=$DmzApp$;
+    include("callAssignAppVulns.snippet");
+
+    include("callAssignHostVulns.snippet");
+
+    for($vuln$ in $appVulns$){
+      if($vuln$ == "defenderRCE"){
+        $hasEntry$="yes";
+      };
+    };
+
+
+    node vHost$DmzApp$$cSN$$hC$=new vExchangeServer("vHost$DmzApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$dmzSNprefix$,$dmzIPcounter$,$mailboxes$,$mailClients$,$storeLocation$,$localAd$,none,"dmz",$vulnerabilities$,$appVulns$,$hostVulns$,$osParams$,$SqlVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    for($mClient$ in $adClients$){
+      $hasPhishing$=$PROB(["phishing","none"],$phishingVulnProb$)$;
+      string vHost$DmzApp$$cSN$$hC$.tmp$mClient$mailClient.hasVuln=$hasPhishing$;
+      if($hasPhishing$ == "phishing"){
+        $hasEntry$="yes";
+      };
+    };
+    $exchangeInDmz$=vHost$DmzApp$$cSN$$hC$;
+    for($node$ in $internetSNhosts$){
+      fwallow $node$.communicationRules=new fwallow([$node$.myInterfaces.ipAddress,vHost$DmzApp$$cSN$$hC$.tmpIp],["25","443","465"]);
+    };
+    $dmzIPcounter$+=1;
+    $allHosts$+=[vHost$DmzApp$$cSN$$hC$];
+    if($osType$ == windows){
+      $backupServerSNclients$+=[vHost$DmzApp$$cSN$$hC$];
+      $addedAdClients$+=[vHost$DmzApp$$cSN$$hC$];
+    };
+
+    // if data store not local, we generate new sql server
+    if($storeLocation$ == "remote"){
+      // deploy credential from tc.dataStored to sql accepted Credentials
+
+      //we need to pick a new server for assignment
+      $hyperVa$=$PROB($dmzSNXenhosts$)$;
+      $osType$=windows;
+      $curOS$=$osType$;
+      $curAPP$=appSqlServer;
+      include("callAssignAppVulns.snippet");
+      include("callAssignOsVulns.snippet");
+      include("callAssignOsParams.snippet");
+
+      include("callAssignHostVulns.snippet");
+
+      node vHost$DmzApp$toSQL$cSN$$hC$=new vSqlServer("vHost$DmzApp$toSQL$cSN$$hC$",$hyperVa$.belongsToSubnet,$dmzSNprefix$,$dmzIPcounter$,$osType$,$mailboxes$,vHost$DmzApp$$cSN$$hC$.tmpLinkCreds,"dmz",$vulnerabilities$,$hostVulns$,$osParams$,$appVulns$,$nameReuseWkt$,$pwReuseWkt$);
+
+      ipaddress vHost$DmzApp$$cSN$$hC$.os.applications.dataStored=vHost$DmzApp$toSQL$cSN$$hC$.tmpIp;
+
+      fwallow vHost$DmzApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$DmzApp$$cSN$$hC$.tmpIp,vHost$DmzApp$toSQL$cSN$$hC$.tmpIp],["3306"]);
+
+      $allHosts$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+      if($osType$ == windows){
+        $backupServerSNclients$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+        $addedAdClients$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+      };
+      $dmzIPcounter$+=1;
+
+      //pick xen host from this pool and assign vHost there
+      node $hyperVa$.os.vms=vHost$DmzApp$toSQL$cSN$$hC$;
+
+      // now append new sql server to $sqlServerInDmzSn$
+      if($sqlServerInDmzSn$ == none){
+        $sqlServerInDmzSn$=[vHost$DmzApp$toSQL$cSN$$hC$];
+      };
+      if($sqlServerInDmzSn$ != none){
+        $sqlServerInDmzSn$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+      };
+      $dmzSNhosts$+=[vHost$DmzApp$toSQL$cSN$$hC$];
+    };
+  };
+
+  $dmzSNhosts$+=[vHost$DmzApp$$cSN$$hC$];
+
+  //assign vHost  to previously selected host
+  node $hyperV$.os.vms=vHost$DmzApp$$cSN$$hC$;
+  $hC$+=1;
+};
+
+$cSN$=engineeringServerSN;
+
+$usefulDataInEngineeringServerSNexists$="false";
+
+for($ServerApp$ in $selectedEngineeringServerApps$){
+
+  $hyperV$=$PROB($engineeringServerSNXenhosts$)$;
+
+  if($ServerApp$ == appSapServer){
+    // we need to prepare LDATA and ADMINCRED
+    // we reuse credentials and data from sap instance in serverSN, to emulate a synced state. we perceive this synced state to be plausible since material used in production and book keeping done by accountants takes place at different places but affects both instances
+
+    // create (virtual) node with os, app etc.
+    $osType$=windows;
+
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+
+    include("callAssignHostVulns.snippet");
+
+    $curAPP$=$ServerApp$;
+    $SapVulns$=none;
+    include("callAssignAppVulns.snippet");
+    $SapVulns$=$appVulns$;
+
+    $potentialClients$=$engineeringClientSNhosts$;
+    $pickChance$=[50];
+    include("callPickHostsByChance.snippet");
+    $clientPWreuse$="true";
+    $clientPWreuseChance$=50;
+
+    if($sapServerInServerSN$ != none){
+      node vHost$ServerApp$$cSN$$hC$=new vSapServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$engineeringServerSNprefix$,$engineeringServerIPcounter$,$sapData$,$sapServerInServerSN$.tmpAdminCred,$finClientList$,$clientPWreuse$,$clientPWreuseChance$,"engineeringServer",none,$vulnerabilities$,$hostVulns$,$osParams$,$SapVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    };
+    if($sapServerInServerSN$ == none){
+      credential $ServerApp$engineeringServerSN$engineeringServerIPcounter$admincred=new credential("sap$hC$","sapuser$hC$","sappw$hC$","admin",$nameReuseWkt$,$pwReuseWkt$);
+
+      $sapData$=none;
+      for($X$ in range(1,3)){
+        usefulData sapData$X$$hC$=new usefulData("sapData$X$$hC$","ww",0,0);
+
+        if($sapData$ != none){
+          $sapData$+=[sapData$X$$hC$];
+        };
+        if($sapData$ == none){
+          $sapData$=[sapData$X$$hC$];
+        };
+
+        $usefulData$+=[sapData$X$$hC$];
+        $usefulDataEngineeringServerSN$+=[sapData$X$$hC$];
+      };
+
+      node vHost$ServerApp$$cSN$$hC$=new vSapServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$engineeringServerSNprefix$,$engineeringServerIPcounter$,$sapData$,$ServerApp$engineeringServerSN$engineeringServerIPcounter$admincred,$finClientList$,$clientPWreuse$,$clientPWreuseChance$,"engineeringServer",none,$vulnerabilities$,$hostVulns$,$osParams$,$SapVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    };
+
+    $engineeringServerIPcounter$+=1;
+    $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+
+
+
+    if($sapServers$ != none){
+      for($si$ in $sapServers$){
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,$si$.tmpIp],["7270","3200"]);
+      };
+      $sapServers$+=[vHost$ServerApp$$cSN$$hC$];
+    };
+    if($sapServers$ == none){
+      $sapServers$=[vHost$ServerApp$$cSN$$hC$];
+    };
+
+  };
+
+  if($ServerApp$ == appGitServer){
+    // we need to prepare LDATA and ADMINCRED
+    credential $ServerApp$engineeringServerSN$engineeringServerIPcounter$admincred=new credential("gitcred","gitUser","gitPw","admin",$nameReuseWkt$,$pwReuseWkt$);
+    // TODO the following dummy data should be replaced with "useful" stuff
+    $gitData$=none;
+    for($X$ in range(1,3)){
+      usefulData gitData$X$$hC$=new usefulData("gitData$X$$hC$","code",0,0);
+
+      $usefulData$+=[gitData$X$$hC$];
+      if($gitData$ != none){
+        $gitData$+=[gitData$X$$hC$];
+      };
+      if($gitData$ == none){
+        $gitData$=[gitData$X$$hC$];
+      };
+
+      $usefulDataEngineeringServerSN$+=[gitData$X$$hC$];
+      $usefulDataInEngineeringServerSNexists$="true";
+    };
+    // data stored locally or remote? TODO
+    $storeLocation$=$PROB(["local","remote"])$;
+    //$storeLocation$="remote";
+    if($storeLocation$ == "remote"){
+      // determine if we want to create new instance or reuse existing one
+      $sqlInst$=$PROB(["new","reuse"])$;
+      if($sqlServerInEngineeringServerSn$ == none){
+        $create$="true";
+        $mode$="create";
+      };
+      if($sqlServerInEngineeringServerSn$ != none){
+        if($sqlInst$ == "new"){
+          $create$="true";
+          $mode$="create";
+        };
+        if($sqlInst$ == "reuse"){
+          $create$="false";
+          $mode$="reuse";
+        };
+      };
+    };
+    if($storeLocation$ == "local"){
+      $mode$="local";
+    };
+
+    // create (virtual) node with os, app etc.
+    $osType$=ubuntu;
+
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+
+    include("callAssignHostVulns.snippet");
+
+    $curAPP$=$ServerApp$;
+    $GitVulns$=none;
+    include("callAssignAppVulns.snippet");
+    $GitVulns$=$appVulns$;
+
+    $potentialClients$=$engineeringClientSNhosts$;
+    $pickChance$=[50];
+    include("callPickHostsByChance.snippet");
+
+    $SqlVulns$=none;
+    $curAPP$=appSqlServer;
+    include("callAssignAppVulns.snippet");
+    $SqlVulns$=$appVulns$;
+    $clientPWreuse$="true";
+    $clientPWreuseChance$=50;
+
+    node vHost$ServerApp$$cSN$$hC$=new vGitServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$engineeringServerSNprefix$,$engineeringServerIPcounter$,$osType$,$gitData$,$ServerApp$engineeringServerSN$engineeringServerIPcounter$admincred,$finClientList$,$clientPWreuse$,$clientPWreuseChance$,"engineeringServer",none,$mode$,$vulnerabilities$,$hostVulns$,$osParams$,$SqlVulns$,$GitVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    $engineeringServerIPcounter$+=1;
+    $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+    if($gitServersInEngineering$ != none){
+      $gitServersInEngineering$+=[vHost$ServerApp$$cSN$$hC$];
+    };
+    if($gitServersInEngineering$ == none){
+      $gitServersInEngineering$=[vHost$ServerApp$$cSN$$hC$];
+    };
+
+    // if data store not local, we generate new sql server
+    if($storeLocation$ == "remote"){
+
+      if($create$ == "true"){
+        //we need to pick a new server for assignment
+        $hyperVa$=$PROB($engineeringServerSNXenhosts$)$;
+        $osType$=windows;
+        $curOS$=$osType$;
+        $curAPP$=appSqlServer;
+        include("callAssignAppVulns.snippet");
+        include("callAssignOsVulns.snippet");
+        include("callAssignOsParams.snippet");
+
+        include("callAssignHostVulns.snippet");
+
+        string vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.level="admin";
+
+        node vHost$ServerApp$toSQL$cSN$$hC$=new vSqlServer("vHost$ServerApp$toSQL$cSN$$hC$",$hyperVa$.belongsToSubnet,$engineeringServerSNprefix$,$engineeringServerIPcounter$,$osType$,$gitData$,vHost$ServerApp$$cSN$$hC$.tmpLinkCreds,"engineeringServer",$vulnerabilities$,$hostVulns$,$osParams$,$appVulns$,$nameReuseWkt$,$pwReuseWkt$);
+        string vHost$ServerApp$toSQL$cSN$$hC$.newlyCreatedFor="vHost$ServerApp$$cSN$$hC$";
+        string vHost$ServerApp$$cSN$$hC$.gotNewSqlServer="vHost$ServerApp$toSQL$cSN$$hC$";
+
+        ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=vHost$ServerApp$toSQL$cSN$$hC$.tmpIp;
+
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,vHost$ServerApp$toSQL$cSN$$hC$.tmpIp],["3306"]);
+
+        $allHosts$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        $engineeringServerSNhosts$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        $engineeringServerIPcounter$+=1;
+
+
+        //pick xen host from this pool and assign vHost there
+        node $hyperVa$.os.vms=vHost$ServerApp$toSQL$cSN$$hC$;
+
+        // now append new sql server to $sqlServerInDmzSn$
+        if($sqlServerInEngineeringServerSn$ == none){
+          $sqlServerInEngineeringServerSn$=[vHost$ServerApp$toSQL$cSN$$hC$];
+        };
+        if($sqlServerInEngineeringServerSn$ != none){
+          $sqlServerInEngineeringServerSn$+=[vHost$ServerApp$toSQL$cSN$$hC$];
+        };
+      };
+      if($create$ == "false"){
+        $pickedSqlInServer$=$PROB($sqlServerInEngineeringServerSn$)$;
+        string $pickedSqlInServer$.reusedBy="vHost$ServerApp$$cSN$$hC$";
+        string vHost$ServerApp$$cSN$$hC$.reusingSqlServer="$pickedSqlInServer$";
+        ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=$pickedSqlInServer$.tmpIp;
+
+        fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,$pickedSqlInServer$.tmpIp],["3306"]);
+
+        credential $pickedSqlInServer$.os.applications.acceptedCredentials=vHost$ServerApp$$cSN$$hC$.tmpLinkCreds;
+        string vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.level="user";
+        usefulData[] $pickedSqlInServer$.os.applications.dataStored=$gitData$;
+        for($ITEM$ in $gitData$){
+          username $ITEM$.owner=vHost$ServerApp$$cSN$$hC$.tmpLinkCreds.username;
+        };
+
+      };
+    };
+  };
+
+  if($ServerApp$ == appLicensingServer){
+
+    // this arbitrary usefulData is just for testing
+    usefulData license$hC$=new usefulData("license$hC$","xml",0,0);
+    $licensedata$=[license$hC$];
+    $usefulData$+=[license$hC$];
+    $usefulDataEngineeringServerSN$+=[license$hC$];
+    $usefulDataInEngineeringServerSNexists$="true";
+
+    // create (virtual) node with os, app etc.
+    $osType$=ubuntu;
+    $curOS$=$osType$;
+    include("callAssignOsVulns.snippet");
+    include("callAssignOsParams.snippet");
+    include("callAssignHostVulns.snippet");
+
+    $curAPP$=$ServerApp$;
+    $LicVulns$=none;
+    include("callAssignAppVulns.snippet");
+    $LicVulns$=$appVulns$;
+
+    node vHost$ServerApp$$cSN$$hC$=new vLicensingServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$engineeringServerSNprefix$,$engineeringServerIPcounter$,$osType$,$licensedata$,$engineeringClientSNhosts$,"engineeringServer",$vulnerabilities$,$hostVulns$,$osParams$,$LicVulns$,$nameReuseWkt$,$pwReuseWkt$);
+    $engineeringServerIPcounter$+=1;
+    $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+
+    usefulData[] vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=$licensedata$;
+
+  };
+
+  //pick xen host from this pool and assign vHost there
+  node $hyperV$.os.vms=vHost$ServerApp$$cSN$$hC$;
+  $engineeringServerSNhosts$+=[vHost$ServerApp$$cSN$$hC$];
+  $hC$+=1;
+};
+
+// add fwallows for remote administration connections from adminSN to different servers
+for($server$ in $serverSNhosts$){
+  for($adminWS$ in $adminSNhosts$){
+    fwallow $adminWS$.os.communicationRules=new fwallow([$server$.tmpIp,$adminWS$.tmpIp],["22","3389"]);
+  };
+};
+for($server$ in $dmzSNhosts$){
+  for($adminWS$ in $adminSNhosts$){
+    fwallow $adminWS$.os.communicationRules=new fwallow([$server$.tmpIp,$adminWS$.tmpIp],["22","3389"]);
+  };
+};
+
+// missconfigured firewalls (adjacent subnets will get random fw misconfigurations that allow unintended communication)
+include("callMisconfigureFw.snippet");
+
+// now include snippet to randomly assign valid admin credentials from Apps and OSes to Admin Clients
+include("callStoreAdminCredsRandomly.snippet");
+
+// attacker setup
+actor attacker1=new attacker("attacker1");
+rceRight testRCE=new rceRight(attacker1,attackerHost.os);
+rceRight attackerHost.rceRights=testRCE;
+
+
+// sync all password for adclients
+for($cl$ in $adClients$){
+  credential[] $cl$.os.acceptedCredentials=$localAd$.adAdmins;
+};
+for($cl$ in $addedAdClients$){
+  credential[] $cl$.os.acceptedCredentials=$localAd$.adAdmins;
+};
+for($cl$ in $adAdmins$){
+  credential[] $cl$.os.acceptedCredentials=$localAd$.adAdmins;
+};
+
+
+for($UD$ in $usefulData$){
+  string $UD$.iAmUseful="yes";
+  int $UD$.externalValue=10;
+};
+for($UD$ in $usefulDataServerSN$){
+  string $UD$.domain="serverSN";
+};
+for($UD$ in $usefulDataDmzSN$){
+  string $UD$.domain="dmzSN";
+};
+if($usefulDataInEngineeringServerSNexists$ == "true"){
+  for($UD$ in $usefulDataEngineeringServerSN$){
+    string $UD$.domain="engineeringServerSN";
+  };
+};
+
+//$adClients$+=[$node$];
+
+//credential host1marketingSN.os.dataStored=blabla;
+//credential host1marketingSN.os.dataStored=$PROB([blabla,blublub])$;
+
+// instantiation of backup-server in serverSN. This is done in the end of the script, to mitigate situations in which clients are equipped with additional usefuldata, after the backup-server-instantiation script went through to assign data and privileges
+
+$cSN$=serverSN;
+if($backupServerInServerSNexists$ == "true"){
+  $hyperV$=$PROB($serverSNXenhosts$)$;
+  $ServerApp$=appBackupServer;
+  // we need to prepare LDATA and ADMINCRED
+  credential $ServerApp$serverSN$serverIPcounter$admincred=new credential("backup$hC$","backupUser$hC$","backupPW$hC$","admin",$nameReuseWkt$,$pwReuseWkt$);
+
+  // data stored locally or remote? TODO
+  $storeLocation$=$PROB(["local","remote"])$;
+
+  if($storeLocation$ == "remote"){
+    $mode$="create";
+  };
+  if($storeLocation$ == "local"){
+    $mode$="local";
+  };
+
+  // create (virtual) node with os, app etc. TODO, make this probabilistic
+  $osType$=ubuntu;
+
+  $curOS$=$osType$;
+
+  $curAPP$=$ServerApp$;
+  $BackupVulns$=none;
+  include("callAssignAppVulns.snippet");
+  include("callAssignAppParams.snippet");
+  $BackupParams$=$appParams$;
+  $BackupVulns$=$appVulns$;
+
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  include("callAssignHostVulns.snippet");
+
+  $potentialClients$=$backupServerSNclients$;
+//    $pickChance$=[50];
+//    include("callPickHostsByChance.snippet");
+  $finClientList$=$backupServerSNclients$;
+
+  $SmbVulns$=none;
+  $curAPP$=appSmbServer;
+  include("callAssignAppVulns.snippet");
+  $SmbVulns$=$appVulns$;
+  $clientPWreuse$="false";
+  $clientPWreuseChance$=50;
+
+  node vHost$ServerApp$$cSN$$hC$=new vBackupServer("vHost$ServerApp$$cSN$$hC$",$hyperV$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$osType$,none,$ServerApp$serverSN$serverIPcounter$admincred,$finClientList$,$clientPWreuse$,$clientPWreuseChance$,"server",none,$mode$,$vulnerabilities$,$hostVulns$,$osParams$,$BackupParams$,$BackupVulns$,$nameReuseWkt$,$pwReuseWkt$);
+
+  node $hyperV$.os.vms=vHost$ServerApp$$cSN$$hC$;
+
+  $serverIPcounter$+=1;
+  $allHosts$+=[vHost$ServerApp$$cSN$$hC$];
+  $serverSNhosts$+=[vHost$ServerApp$$cSN$$hC$];
+  if($osType$ == windows){
+    $addedAdClients$+=[vHost$ServerApp$$cSN$$hC$];
+  };
+
+  // if data store not local, we generate new sql server
+  if($storeLocation$ == "remote"){
+
+    if($mode$ == "create"){
+      //we need to pick a new server for assignment
+      $hyperVa$=$PROB($serverSNXenhosts$)$;
+      $osType$=windows;
+      $curOS$=$osType$;
+
+      $appVulns$=$SmbVulns$;
+
+      include("callAssignOsVulns.snippet");
+      include("callAssignOsParams.snippet");
+      include("callAssignHostVulns.snippet");
+      // this is to ensure, that SMB is active parameter
+      if($osParams$ == none){
+        $osParams$=["smb"];
+      };
+      if($osParams$ != none){
+        $osParams$+=["smb"];
+      };
+
+      node vHost$ServerApp$toSMB$cSN$$hC$=new vSmbServer("vHost$ServerApp$toSMB$cSN$$hC$",$hyperVa$.belongsToSubnet,$serverSNprefix$,$serverIPcounter$,$osType$,vHost$ServerApp$$cSN$$hC$.os.applications.dataLinked,vHost$ServerApp$$cSN$$hC$.tmpLinkCreds,"server",$vulnerabilities$,$hostVulns$,$osParams$,$appVulns$,$nameReuseWkt$,$pwReuseWkt$);
+      string vHost$ServerApp$toSMB$cSN$$hC$.newlyCreatedFor="vHost$ServerApp$$cSN$$hC$";
+      string vHost$ServerApp$$cSN$$hC$.gotNewSmbServer="vHost$ServerApp$toSMB$cSN$$hC$";
+
+      ipaddress vHost$ServerApp$$cSN$$hC$.os.applications.dataStored=vHost$ServerApp$toSMB$cSN$$hC$.tmpIp;
+
+      fwallow vHost$ServerApp$$cSN$$hC$.os.communicationRules=new fwallow([vHost$ServerApp$$cSN$$hC$.tmpIp,vHost$ServerApp$toSMB$cSN$$hC$.tmpIp],["137"]);
+
+      $allHosts$+=[vHost$ServerApp$toSMB$cSN$$hC$];
+      $serverSNhosts$+=[vHost$ServerApp$toSMB$cSN$$hC$];
+      if($osType$ == windows){
+        $addedAdClients$+=[vHost$ServerApp$toSMB$cSN$$hC$];
+      };
+      $serverIPcounter$+=1;
+
+      //pick xen host from this pool and assign vHost there
+      node $hyperVa$.os.vms=vHost$ServerApp$toSMB$cSN$$hC$;
+
+    };
+  };
+};
+
+for($machine$ in $productionSNhosts$){
+  application $machine$.os.applications=new appProduction("seriousProduction",$machine$.myInterfaces,none);
+  usefulData $machine$.os.dataStored=new usefulData("prodData$machine$","holyGrail",21,21);
+  if($gitServersInEngineering$ != none){
+    node $machine$.os.applications.deployingPeers=$PROB($gitServersInEngineering$)$;
+    for($gitS$ in $gitServersInEngineering$){
+      fwallow $machine$.os.communicationRules=new fwallow([$machine$.tmpIp,$gitS$.tmpIp],["1873"]);
+    };
+  };
+};
+
+string default1.entryExists=$hasEntry$;
+if($hasEntry$ == "no"){
+  $pickAgain$=$PROB(["phishing","httpPut","jmx","exchangeDefender"])$;
+//  $pickAgain$="phishing";
+
+  if($pickAgain$ == "httpPut"){
+    if($tcInDmz$ != "none"){
+      $tcInstance$=$PROB($tcInDmz$)$;
+      string $tcInstance$.tmpTcServer.hasVuln="httpPutVuln";
+    };
+    if($tcInDmz$ == "none"){
+      $pickAgain$=$PROB(["phishing","exchangeDefender"])$;
+    };
+  };
+
+  if($pickAgain$ == "jmx"){
+    if($tcInDmz$ != "none"){
+      $tcInstance$=$PROB($tcInDmz$)$;
+      string $tcInstance$.tmpTcServer.hasVuln="jmxNoAuth";
+      string $tcInstance$.tmpTcServer.parameters="jmxEnabled";
+    };
+    if($tcInDmz$ == "none"){
+      $pickAgain$=$PROB(["phishing","exchangeDefender"])$;
+    };
+  };
+
+  if($pickAgain$ == "phishing"){
+    $infectedMailClient$=$PROB($mailClients$)$;
+    string $exchangeInDmz$.tmp$infectedMailClient$mailClient.hasVuln="phishing";
+    string $exchangeInDmz$.tmp$infectedMailClient$mailClient.belated="yes";
+  };
+
+  if($pickAgain$ == "exchangeDefender"){
+    $exInstance$=$exchangeInDmz$;
+    string $exInstance$.tmpExServer.hasVuln="defenderRCE";
+  };
+};

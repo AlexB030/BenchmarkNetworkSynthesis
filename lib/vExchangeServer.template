@@ -1,0 +1,95 @@
+init(NAME,SUBNET,PREFIX,COUNTER,LDATA,CLIENTS,LOCAL,AD,CREDS,POOL,OSVULNS,APPVULNS,HOSTVULNS,OSPARAMS,SQLVULNS,NRWKT,PRWKT);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+$osname$=$NAME$;
+$osname$+="Os";
+$appname$=$NAME$;
+$appname$+="App";
+subnet belongsToSubnet=$SUBNET$;
+string cpu="virtual";
+string canBeMigrated="true";
+if($HOSTVULNS$ != none){
+  string[] hasVuln=$HOSTVULNS$;
+};
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+os os=new osWindows($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+
+string os.parameters="remoteShell";
+
+application tmpExServer=new appExchangeServer($appname$,$SELF$.myInterfaces,$APPVULNS$);
+
+application os.applications=$SELF$.tmpExServer;
+
+
+fwallow os.applications.communicationRules=new fwallow([$AD$.myInterfaces.ipAddress,$SELF$.tmpIp],["1337"]);
+node refAD=$AD$;
+node refAD.os.applications.clients=$SELF$;
+application tmpAdClient=new appGenClient("adClient");
+interface tmpAdClient.bindingIf=$SELF$.myInterfaces;
+ipaddress tmpAdClient.dataStored=$AD$.tmpIp;
+
+credential os.acceptedCredentials=$AD$.os.acceptedCredentials;
+
+if($LDATA$ != none){
+  usefulData[] os.applications.dataLinked=$LDATA$;
+};
+
+if($CREDS$ != none){
+  credential tmpLinkCreds=$CREDS$;
+  usefulData[] os.applications.dataStored=$CREDS$;
+};
+if($CREDS$ == none){
+  credential tmpLinkCreds=new credential("exSql$COUNTER$Cred","exSql$COUNTER$Uname","exSql$COUNTER$Pw","admin",$NRWKT$,$PRWKT$);
+  usefulData[] os.applications.dataStored=$SELF$.tmpLinkCreds;
+};
+
+
+
+if($CLIENTS$ != none){
+  for($H$ in $CLIENTS$){
+    node tmp$H$=$H$;
+    application tmp$H$mailClient=new appGenClient("mailClient");
+//    string tmp$H$mailClient.hasVuln="phishing";
+    interface tmp$H$mailClient.bindingIf=$H$.myInterfaces;
+    ipaddress tmp$H$mailClient.dataStored=$SELF$.tmpIp;
+
+    fwallow tmp$H$mailClient.communicationRules=new fwallow([$H$.myInterfaces.ipAddress,$SELF$.tmpIp],["25","443","465"]);
+    application tmp$H$.os.applications=$SELF$.tmp$H$mailClient;
+    credential[] os.applications.acceptedCredentials=$SELF$.tmp$H$.os.tmpInitCred;
+  };
+};
+
+if($LOCAL$ == "local"){
+// here comes the instance of the sql server within the same node
+  string weLocal="ja";
+  ipaddress os.applications.dataStored=$SELF$.tmpIp;
+  application tmpSql$COUNTER$=new appSqlServer("exSql$COUNTER$",$SELF$.myInterfaces,$SQLVULNS$);
+  application os.applications=$SELF$.tmpSql$COUNTER$;
+
+  if($LDATA$ != none){
+    for($ITEM$ in $LDATA$){
+      usefulData tmp$ITEM$=$ITEM$;
+      username tmp$ITEM$.owner=$SELF$.tmpLinkCreds.username;
+    };
+    usefulData[] tmpSql$COUNTER$.dataStored=$LDATA$;
+  };
+
+  credential[] tmpSql$COUNTER$.acceptedCredentials=$SELF$.tmpLinkCreds;
+  credential[] tmpSql$COUNTER$.tmpAdminCred=$SELF$.tmpLinkCreds;
+  username tmpSql$COUNTER$.sqlAdmin=$SELF$.tmpLinkCreds.username;
+
+};
+
+application os.applications=tmpAdClient;

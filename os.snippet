@@ -1,0 +1,156 @@
+// this snippet covers the instantiation of generic OSs on the hosts in
+
+// serverSN -> Xen
+// engineeringSN -> Xen
+// dmzSN -> Xen
+// internetSN -> half Windows, half Ubuntu
+// engineeringClientSN -> half Windows, half Ubuntu
+// remoteSN -> Windows
+// accountingSN -> Windows
+// marketingSN -> Windows
+// production -> half Windows, half Ubuntu
+// admin -> half Windows, half Ubuntu
+
+
+//now we populate remote, marketing and accounting SN with windows clients
+for($H$ in $marketingSNhosts$){
+  $curOS$=windowsClient;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  os $H$os=new osWindows("$H$osWin",$H$.myInterfaces,none,"user",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  os $H$.os=$H$os;
+  $allOSs$+=[$H$os];
+  $backupServerSNclients$+=[$H$];
+};
+
+for($H$ in $accountingSNhosts$){
+  $curOS$=windowsClient;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  os $H$os=new osWindows("$H$osWin",$H$.myInterfaces,none,"user",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  os $H$.os=$H$os;
+  $allOSs$+=[$H$os];
+  $backupServerSNclients$+=[$H$];
+};
+
+for($H$ in $remoteSNhosts$){
+  $curOS$=windows;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  os $H$os=new osWindows("$H$osWin",$H$.myInterfaces,none,"user",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  os $H$.os=$H$os;
+  $allOSs$+=[$H$os];
+};
+
+// engineeringClients are not in Domain. So they need a local admin account for administration puporses besides the individual user accounts
+
+credential localAdminForEngineeringClients=new credential("engineeringLocalAdmin","engineeringLocalAdminUname","engineeringLocalAdminPW","admin",$nameReuseWkt$,$pwReuseWkt$);
+
+// hosts in engineeringClientSN and internetSN are randomly equipped with either windows or ubuntu
+for($H$ in $engineeringClientSNhosts$){
+  $osProb$=$PROB([windowsClient,ubuntuClient],[50])$;
+  $curOS$=$osProb$;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  if($osProb$ == windowsClient){
+    os $H$os=new osWindows("$H$osWin",$H$.myInterfaces,none,"user",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  };
+  if($osProb$ != windowsClient){
+    os $H$os=new osUbuntu("$H$osUbn",$H$.myInterfaces,none,"user",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  };
+  os $H$.os=$H$os;
+  credential $H$.os.acceptedCredentials=localAdminForEngineeringClients;
+  $allOSs$+=[$H$os];
+};
+
+for($H$ in $internetSNhosts$){
+  $osProb$=$PROB([windows,ubuntu],[50])$;
+  $curOS$=$osProb$;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  if($osProb$ == windows){
+    os $H$os=new osWindows("$H$osWin",$H$.myInterfaces,none,"user",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  };
+  if($osProb$ != windows){
+    os $H$os=new osUbuntu("$H$osUbn",$H$.myInterfaces,none,"user",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  };
+  os $H$.os=$H$os;
+  $allOSs$+=[$H$os];
+};
+
+// hosts in dmzSN, serverSN, and engineeringServerSN are euipped with the Xen OS
+for($H$ in $dmzSNhosts$){
+  $curOS$=xen;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  os $H$os=new osXen("$H$osXen",$H$.myInterfaces,none,"admin","dmz",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+
+  $dmzSNXens$+=[$H$os];
+  os $H$.os=$H$os;
+};
+
+for($H$ in $engineeringServerSNhosts$){
+  $curOS$=xen;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  os $H$os=new osXen("$H$osXen",$H$.myInterfaces,none,"admin","engineeringServer",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+
+  $engineeringServerSNXens$+=[$H$os];
+  os $H$.os=$H$os;
+};
+
+for($H$ in $serverSNhosts$){
+  $curOS$=xen;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  os $H$os=new osXen("$H$osXen",$H$.myInterfaces,none,"admin","server",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+
+  $serverSNXens$+=[$H$os];
+  os $H$.os=$H$os;
+};
+
+
+// hosts in productionSN are randomly equipped with either windows or ubuntu
+for($H$ in $productionSNhosts$){
+  $osProb$=$PROB([windows,ubuntu],[50])$;
+  $curOS$=$osProb$;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  if($osProb$ == windows){
+    os $H$os=new osWindows("$H$osWin",$H$.myInterfaces,none,"admin",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  };
+  if($osProb$ != windows){
+    os $H$os=new osUbuntu("$H$osUbn",$H$.myInterfaces,none,"admin",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  };
+  os $H$.os=$H$os;
+  $allOSs$+=[$H$os];
+};
+
+// hosts in adminSN are randomly equipped with either windows or ubuntu
+for($H$ in $adminSNhosts$){
+  $osProb$=$PROB([windowsClient,ubuntuClient],[50])$;
+  $curOS$=$osProb$;
+  include("callAssignOsVulns.snippet");
+  include("callAssignOsParams.snippet");
+
+  if($osProb$ == windowsClient){
+    $vulnerabilities$=["privEscVuln","eternalBlue"];
+    os $H$os=new osWindows("$H$osWin",$H$.myInterfaces,none,"admin",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+    $backupServerSNclients$+=[$H$];
+  };
+  if($osProb$ != windowsClient){
+    $vulnerabilities$=["privEscVuln"];
+    os $H$os=new osUbuntu("$H$osUbn",$H$.myInterfaces,none,"admin",$vulnerabilities$,$osParams$,$nameReuseWkt$,$pwReuseWkt$);
+  };
+  os $H$.os=$H$os;
+  $allOSs$+=[$H$os];
+};

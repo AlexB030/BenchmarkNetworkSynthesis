@@ -1,0 +1,590 @@
+///////////////////////
+// legitimate functions
+///////////////////////
+
+
+function readDataUsernames;
+boolean readDataUsernames.public="true";
+int readDataUsernames.setupTime=2;
+int readDataUsernames.setupProb=100;
+int readDataUsernames.execTime=60;
+int readDataUsernames.execProb=100;
+string[] readDataUsernames.param=["builtIn"];
+
+
+function readDataPasswords;
+boolean readDataPasswords.public="true";
+int readDataPasswords.setupTime=2;
+int readDataPasswords.setupProb=100;
+int readDataPasswords.execTime=90;
+int readDataPasswords.execProb=100;
+string[] readDataPasswords.param=["builtIn"];
+
+
+function readDataUsefulData;
+boolean readDataUsefulData.public="true";
+int readDataUsefulData.setupTime=2;
+int readDataUsefulData.setupProb=100;
+int readDataUsefulData.execTime=120;
+int readDataUsefulData.execProb=100;
+string[] readDataUsefulData.param=["builtIn"];
+
+
+function readDataIpAddresses;
+boolean readDataIpAddresses.public="true";
+int readDataIpAddresses.setupTime=2;
+int readDataIpAddresses.setupProb=100;
+int readDataIpAddresses.execTime=20;
+int readDataIpAddresses.execProb=100;
+string[] readDataIpAddresses.param=["builtIn"];
+
+
+function readDataDnsNames;
+boolean readDataDnsNames.public="true";
+int readDataDnsNames.setupTime=2;
+int readDataDnsNames.setupProb=100;
+int readDataDnsNames.execTime=60;
+int readDataDnsNames.execProb=100;
+string[] readDataDnsNames.param=["builtIn"];
+
+
+function pingScan;
+boolean pingScan.public="true";
+int pingScan.setupTime=2;
+int pingScan.setupProb=100;
+int pingScan.execTime=175;
+int pingScan.execProb=2;
+string[] pingScan.param=["builtIn"];
+
+
+function arpCache;
+boolean arpCache.public="true";
+int arpCache.setupTime=2;
+int arpCache.setupProb=100;
+int arpCache.execTime=20;
+int arpCache.execProb=100;
+string[] arpCache.param=["builtIn"];
+
+
+function getMail;
+boolean getMail.public="true";
+int getMail.setupTime=2;
+int getMail.setupProb=100;
+int getMail.execTime=20;
+int getMail.execProb=100;
+string[] getMail.param=["builtIn"];
+
+
+function remoteDatabaseManagement;
+boolean remoteDatabaseManagement.public="true";
+int remoteDatabaseManagement.setupTime=2;
+int remoteDatabaseManagement.setupProb=100;
+int remoteDatabaseManagement.execTime=180;
+int remoteDatabaseManagement.execProb=100;
+string[] remoteDatabaseManagement.param=["builtIn"];
+
+
+function httpGet;
+boolean httpGet.public="true";
+int httpGet.setupTime=2;
+int httpGet.setupProb=100;
+int httpGet.execTime=5;
+int httpGet.execProb=100;
+string[] httpGet.param=["builtIn"];
+
+
+
+function sapManage;
+boolean sapManage.public="true";
+int sapManage.setupTime=2;
+int sapManage.setupProb=100;
+int sapManage.execTime=120;
+int sapManage.execProb=100;
+string[] sapManage.param=["builtIn"];
+
+
+function mdbQuery;
+boolean mdbQuery.public="true";
+int mdbQuery.setupTime=2;
+int mdbQuery.setupProb=100;
+int mdbQuery.execTime=30;
+int mdbQuery.execProb=100;
+string[] mdbQuery.param=["builtIn"];
+
+
+function mdbManagement;
+boolean mdbManagement.public="true";
+int mdbManagement.setupTime=2;
+int mdbManagement.setupProb=100;
+int mdbManagement.execTime=180;
+int mdbManagement.execProb=100;
+string[] mdbManagement.param=["builtIn"];
+
+
+function accountingManager;
+boolean accountingManager.public="true";
+int accountingManager.setupTime=2;
+int accountingManager.setupProb=100;
+int accountingManager.execTime=120;
+int accountingManager.execProb=100;
+string[] accountingManager.param=["builtIn"];
+
+
+function accountingQuery;
+boolean accountingQuery.public="true";
+int accountingQuery.setupTime=2;
+int accountingQuery.setupProb=100;
+int accountingQuery.execTime=20;
+int accountingQuery.execProb=100;
+string[] accountingQuery.param=["builtIn"];
+
+
+function sqlQuery;
+boolean sqlQuery.public="true";
+int sqlQuery.setupTime=2;
+int sqlQuery.setupProb=100;
+int sqlQuery.execTime=30;
+int sqlQuery.execProb=100;
+string[] sqlQuery.param=["builtIn"];
+
+
+function readMarketingData;
+boolean readMarketingData.public="true";
+int readMarketingData.setupTime=2;
+int readMarketingData.setupProb=100;
+int readMarketingData.execTime=20;
+int readMarketingData.execProb=100;
+string[] readMarketingData.param=["builtIn"];
+
+
+function manageMarketingData;
+boolean manageMarketingData.public="true";
+int manageMarketingData.setupTime=2;
+int manageMarketingData.setupProb=100;
+int manageMarketingData.execTime=120;
+int manageMarketingData.execProb=100;
+string[] manageMarketingData.param=["builtIn"];
+
+
+function remoteConfigureClients;
+boolean remoteConfigureClients.public="true";
+int remoteConfigureClients.setupTime=2;
+int remoteConfigureClients.setupProb=100;
+int remoteConfigureClients.execTime=200;
+int remoteConfigureClients.execProb=80;
+string[] remoteConfigureClients.param=["builtIn"];
+
+
+function licenseRenew;
+boolean licenseRenew.public="true";
+int licenseRenew.setupTime=2;
+int licenseRenew.setupProb=100;
+int licenseRenew.execTime=20;
+int licenseRenew.execProb=100;
+string[] licenseRenew.param=["builtIn"];
+
+
+function gitPushPull;
+boolean gitPushPull.public="true";
+int gitPushPull.setupTime=2;
+int gitPushPull.setupProb=100;
+int gitPushPull.execTime=40;
+int gitPushPull.execProb=100;
+string[] gitPushPull.param=["builtIn"];
+
+
+function deployViaEngineeringServer;
+boolean deployViaEngineeringServer.public="true";
+int deployViaEngineeringServer.setupTime=2;
+int deployViaEngineeringServer.setupProb=100;
+int deployViaEngineeringServer.execTime=100;
+int deployViaEngineeringServer.execProb=90;
+string[] deployViaEngineeringServer.param=["builtIn"];
+
+
+function smuggleMaliciousCodeToProduction;
+boolean smuggleMaliciousCodeToProduction.public="true";
+int smuggleMaliciousCodeToProduction.setupTime=2;
+int smuggleMaliciousCodeToProduction.setupProb=100;
+int smuggleMaliciousCodeToProduction.execTime=300;
+int smuggleMaliciousCodeToProduction.execProb=10;
+string[] smuggleMaliciousCodeToProduction.param=["builtIn"];
+
+
+function gitManage;
+boolean gitManage.public="true";
+int gitManage.setupTime=2;
+int gitManage.setupProb=100;
+int gitManage.execTime=120;
+int gitManage.execProb=100;
+string[] gitManage.param=["builtIn"];
+
+
+function remoteShell;
+boolean remoteShell.public="true";
+int remoteShell.setupTime=2;
+int remoteShell.setupProb=100;
+int remoteShell.execTime=20;
+int remoteShell.execProb=100;
+string[] remoteShell.param=["builtIn"];
+
+
+function sapFetch;
+boolean sapFetch.public="true";
+int sapFetch.setupTime=2;
+int sapFetch.setupProb=100;
+int sapFetch.execTime=20;
+int sapFetch.execProb=100;
+string[] sapFetch.param=["builtIn"];
+
+
+function smbAccess;
+boolean smbAccess.public="true";
+int smbAccess.setupTime=2;
+int smbAccess.setupProb=100;
+int smbAccess.execTime=120;
+int smbAccess.execProb=100;
+string[] smbAccess.param=["builtIn"];
+
+
+function backupAgent;
+boolean backupAgent.public="true";
+int backupAgent.setupTime=2;
+int backupAgent.setupProb=100;
+int backupAgent.execTime=100;
+int backupAgent.execProb=100;
+string[] backupAgent.param=["builtIn"];
+
+
+function backupManager;
+boolean backupManager.public="true";
+int backupManager.setupTime=2;
+int backupManager.setupProb=100;
+int backupManager.execTime=140;
+int backupManager.execProb=100;
+string[] backupManager.param=["builtIn"];
+
+
+///////////
+// exploits
+///////////
+
+
+function unauthedUserRce;
+boolean unauthedUserRce.public="true";
+int unauthedUserRce.setupTime=2;
+int unauthedUserRce.setupProb=100;
+int unauthedUserRce.execTime=80;
+int unauthedUserRce.execProb=50;
+string[] unauthedUserRce.param=["genericExploit"];
+
+
+function unauthedUserRead;
+boolean unauthedUserRead.public="true";
+int unauthedUserRead.setupTime=2;
+int unauthedUserRead.setupProb=100;
+int unauthedUserRead.execTime=90;
+int unauthedUserRead.execProb=50;
+string[] unauthedUserRead.param=["genericExploit"];
+
+
+function unauthedAdminRce;
+boolean unauthedAdminRce.public="true";
+int unauthedAdminRce.setupTime=2;
+int unauthedAdminRce.setupProb=100;
+int unauthedAdminRce.execTime=80;
+int unauthedAdminRce.execProb=50;
+string[] unauthedAdminRce.param=["genericExploit"];
+
+
+function unauthedAdminRead;
+boolean unauthedAdminRead.public="true";
+int unauthedAdminRead.setupTime=2;
+int unauthedAdminRead.setupProb=100;
+int unauthedAdminRead.execTime=90;
+int unauthedAdminRead.execProb=50;
+string[] unauthedAdminRead.param=["genericExploit"];
+
+
+function backupRce;
+boolean backupRce.public="true";
+int backupRce.setupTime=2;
+int backupRce.setupProb=100;
+int backupRce.execTime=800;
+int backupRce.execProb=30;
+string[] backupRce.param=["exploit"];
+
+
+function reconfigureBackupServer;
+boolean reconfigureBackupServer.public="true";
+int reconfigureBackupServer.setupTime=2;
+int reconfigureBackupServer.setupProb=100;
+int reconfigureBackupServer.execTime=300;
+int reconfigureBackupServer.execProb=90;
+string[] reconfigureBackupServer.param=["exploit"];
+
+
+function backupClientOverAppliance;
+boolean backupClientOverAppliance.public="true";
+int backupClientOverAppliance.setupTime=2;
+int backupClientOverAppliance.setupProb=100;
+int backupClientOverAppliance.execTime=120;
+int backupClientOverAppliance.execProb=50;
+string[] backupClientOverAppliance.param=["exploit"];
+
+
+function xenRceEscalation;
+boolean xenRceEscalation.public="true";
+int xenRceEscalation.setupTime=2;
+int xenRceEscalation.setupProb=100;
+int xenRceEscalation.execTime=80;
+int xenRceEscalation.execProb=50;
+string[] xenRceEscalation.param=["exploit"];
+
+
+function xenReadEscalation;
+boolean xenReadEscalation.public="true";
+int xenReadEscalation.setupTime=2;
+int xenReadEscalation.setupProb=100;
+int xenReadEscalation.execTime=100;
+int xenReadEscalation.execProb=50;
+string[] xenReadEscalation.param=["exploit"];
+
+
+function xenVmRead;
+boolean xenVmRead.public="true";
+int xenVmRead.setupTime=2;
+int xenVmRead.setupProb=100;
+int xenVmRead.execTime=100;
+int xenVmRead.execProb=50;
+string[] xenVmRead.param=["exploit"];
+
+
+function usbExchangeToProduction;
+boolean usbExchangeToProduction.public="true";
+int usbExchangeToProduction.setupTime=2;
+int usbExchangeToProduction.setupProb=100;
+int usbExchangeToProduction.execTime=400;
+int usbExchangeToProduction.execProb=5;
+string[] usbExchangeToProduction.param=["genericExploit", "airGap"];
+
+
+function usbExchangeClient;
+boolean usbExchangeClient.public="true";
+int usbExchangeClient.setupTime=2;
+int usbExchangeClient.setupProb=100;
+int usbExchangeClient.execTime=400;
+int usbExchangeClient.execProb=5;
+string[] usbExchangeClient.param=["genericExploit", "airGap"];
+
+
+function jmxTomcatVulnerability;
+boolean jmxTomcatVulnerability.public="true";
+int jmxTomcatVulnerability.setupTime=2;
+int jmxTomcatVulnerability.setupProb=100;
+int jmxTomcatVulnerability.execTime=120;
+int jmxTomcatVulnerability.execProb=90;
+string[] jmxTomcatVulnerability.param=["exploit"];
+
+
+function httpPutVulnerability;
+boolean httpPutVulnerability.public="true";
+int httpPutVulnerability.setupTime=2;
+int httpPutVulnerability.setupProb=100;
+int httpPutVulnerability.execTime=30;
+int httpPutVulnerability.execProb=100;
+string[] httpPutVulnerability.param=["exploit"];
+
+
+function tomPrivEscalation;
+boolean tomPrivEscalation.public="true";
+int tomPrivEscalation.setupTime=2;
+int tomPrivEscalation.setupProb=100;
+int tomPrivEscalation.execTime=800;
+int tomPrivEscalation.execProb=25;
+string[] tomPrivEscalation.param=["exploit"];
+
+
+function phishing;
+boolean phishing.public="true";
+int phishing.setupTime=2;
+int phishing.setupProb=100;
+int phishing.execTime=200;
+int phishing.execProb=100;
+string[] phishing.param=["exploit"];
+
+
+function meltdown;
+boolean meltdown.public="true";
+int meltdown.setupTime=2;
+int meltdown.setupProb=100;
+int meltdown.execTime=200;
+int meltdown.execProb=10;
+string[] meltdown.param=["exploit"];
+
+
+function eternalBlue;
+boolean eternalBlue.public="true";
+int eternalBlue.setupTime=2;
+int eternalBlue.setupProb=100;
+int eternalBlue.execTime=60;
+int eternalBlue.execProb=10;
+string[] eternalBlue.param=["exploit"];
+
+
+function privilegeEscalationUbuntu;
+boolean privilegeEscalationUbuntu.public="true";
+int privilegeEscalationUbuntu.setupTime=2;
+int privilegeEscalationUbuntu.setupProb=100;
+int privilegeEscalationUbuntu.execTime=120;
+int privilegeEscalationUbuntu.execProb=50;
+string[] privilegeEscalationUbuntu.param=["genericExploit"];
+
+
+function privilegeEscalationWindows;
+boolean privilegeEscalationWindows.public="true";
+int privilegeEscalationWindows.setupTime=2;
+int privilegeEscalationWindows.setupProb=100;
+int privilegeEscalationWindows.execTime=60;
+int privilegeEscalationWindows.execProb=100;
+string[] privilegeEscalationWindows.param=["genericExploit"];
+
+function intraSubVulnA;
+boolean intraSubVulnA.public="true";
+int intraSubVulnA.setupTime=2;
+int intraSubVulnA.setupProb=100;
+int intraSubVulnA.execTime=70;
+int intraSubVulnA.execProb=50;
+string[] intraSubVulnA.param=["genericExploit"];
+
+function intraSubVulnB;
+boolean intraSubVulnB.public="true";
+int intraSubVulnB.setupTime=2;
+int intraSubVulnB.setupProb=100;
+int intraSubVulnB.execTime=70;
+int intraSubVulnB.execProb=50;
+string[] intraSubVulnB.param=["genericExploit"];
+
+
+function exchangeDefenderRCE;
+boolean exchangeDefenderRCE.public="true";
+int exchangeDefenderRCE.setupTime=2;
+int exchangeDefenderRCE.setupProb=100;
+int exchangeDefenderRCE.execTime=32;
+int exchangeDefenderRCE.execProb=20;
+string[] exchangeDefenderRCE.param=["exploit"];
+
+
+function sendMailExchangeRCE;
+boolean sendMailExchangeRCE.public="true";
+int sendMailExchangeRCE.setupTime=2;
+int sendMailExchangeRCE.setupProb=100;
+int sendMailExchangeRCE.execTime=120;
+int sendMailExchangeRCE.execProb=30;
+string[] sendMailExchangeRCE.param=["exploit"];
+
+///////////
+// defenses
+///////////
+
+
+function liveMigration;
+boolean liveMigration.public="true";
+int liveMigration.setupTime=2;
+int liveMigration.setupProb=100;
+int liveMigration.execTime=30;
+int liveMigration.execProb=33;
+string[] liveMigration.param=["liveMigration", "defense"];
+
+
+function coldMigration;
+boolean coldMigration.public="true";
+int coldMigration.setupTime=2;
+int coldMigration.setupProb=100;
+int coldMigration.execTime=30;
+int coldMigration.execProb=33;
+string[] coldMigration.param=["coldMigration", "defense"];
+
+function ipShuffling;
+boolean ipShuffling.public="true";
+int ipShuffling.setupTime=2;
+int ipShuffling.setupProb=100;
+int ipShuffling.execTime=30;
+int ipShuffling.execProb=33;
+string[] ipShuffling.param=["ipShuffling", "defense"];
+
+
+function coldMigrationWithIpShuffle;
+boolean coldMigrationWithIpShuffle.public="true";
+int coldMigrationWithIpShuffle.setupTime=2;
+int coldMigrationWithIpShuffle.setupProb=100;
+int coldMigrationWithIpShuffle.execTime=30;
+int coldMigrationWithIpShuffle.execProb=33;
+string[] coldMigrationWithIpShuffle.param=["coldMigrationWithIpShuffle", "defense"];
+
+
+function resetRCErights;
+boolean resetRCErights.public="true";
+int resetRCErights.setupTime=2;
+int resetRCErights.setupProb=100;
+int resetRCErights.execTime=30;
+int resetRCErights.execProb=33;
+string[] resetRCErights.param=["resetRCErights", "defense"];
+
+
+
+// helper function from the helper template, that are generelly used as service functions
+////////////////////
+// service functions
+////////////////////
+
+function extractUsefulData;
+boolean extractUsefulData.public="false";
+
+function extractUsernames;
+boolean extractUsernames.public="false";
+
+function extractPasswords;
+boolean extractPasswords.public="false";
+
+function extractIpAddresses;
+boolean extractIpAddresses.public="false";
+
+function extractDnsName;
+boolean extractDnsName.public="false";
+
+function readFromRam;
+boolean readFromRam.public="false";
+
+function readAtomFromRam;
+boolean readAtomFromRam.public="false";
+
+function findRootNode;
+boolean findRootNode.public="false";
+
+function readDataUsernames;
+boolean readDataUsernames.public="false";
+
+function readDataPasswords;
+boolean readDataPasswords.public="false";
+
+function readDataUsefulData;
+boolean readDataUsefulData.public="false";
+
+function readDataIpAddresses;
+boolean readDataIpAddresses.public="false";
+
+function readDataDnsNames;
+boolean readDataDnsNames.public="false";
+
+function childApplication;
+boolean childApplication.public="false";
+
+function tryConnect;
+boolean tryConnect.public="false";
+
+function checkfw;
+boolean checkfw.public="false";
+
+function adAuthenticate;
+boolean adAuthenticate.public="false";

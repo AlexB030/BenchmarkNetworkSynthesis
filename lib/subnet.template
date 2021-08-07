@@ -1,0 +1,5 @@
+init(NAME,TYPE,LOC);
+
+string name=$NAME$;
+string type=$TYPE$;
+string location=$LOC$;

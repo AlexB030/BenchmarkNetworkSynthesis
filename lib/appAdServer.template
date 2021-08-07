@@ -1,0 +1,19 @@
+init(NAME,IFS,REFHOST);
+
+//this is the general name which is not used for any evaluation
+string name=$NAME$;
+
+//this is to determine whether a called function is applicable to the current application
+string[] type="remoteHostManagement";
+
+//listening Port is needed for networked applications, if not applicable, then 0
+string[] listeningPorts="1337";
+
+//the interfaces for this application
+interface[] bindingIf=$IFS$;
+
+//now the general variables for function evaluation
+//node[] clients=LHOSTS;
+node refHost=$REFHOST$;
+//usefulData[] dataLinked=LDATA;
+//credential[] acceptedCredentials=CREDS;

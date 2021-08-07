@@ -1,0 +1,149 @@
+init(NAME);
+
+string name=$NAME$;
+
+
+// following are the helper functions, we might need
+
+extractUsefulData(data DATAELEMENT,actor ACTOR){
+  isOfType(usefulData,DATAELEMENT) &&
+  ! isInList(DATAELEMENT,ACTOR.knownUsefulData)
+
+  add usefulData ACTOR.knownUsefulData=DATAELEMENT
+};
+
+extractUsernames(data DATAELEMENT,actor ACTOR){
+  ( ( isOfType(credential,DATAELEMENT) &&
+  UNAME==DATAELEMENT.username.value ) ||
+  ( isOfType(username,DATAELEMENT) &&
+  UNAME==DATAELEMENT.value ) ) &&
+  ! isInList(UNAME,ACTOR.knownUsernames)
+
+  add string ACTOR.knownUsernames=UNAME
+};
+
+extractPasswords(data DATAELEMENT,actor ACTOR){
+  ( ( isOfType(credential,DATAELEMENT) &&
+  PW==DATAELEMENT.password.value ) ||
+  ( isOfType(password,DATAELEMENT) &&
+  PW==DATAELEMENT.value ) ) &&
+  ! isInList(PW,ACTOR.knownPasswords)
+
+  add string ACTOR.knownPasswords=PW
+};
+
+extractIpAddresses(data DATAELEMENT,actor ACTOR){
+  isOfType(ipaddress,DATAELEMENT) &&
+  IP==DATAELEMENT.value &&
+  ! isInList(IP,ACTOR.knownIpAddressesStrings)
+
+  add string ACTOR.knownIpAddressesStrings=IP
+};
+
+extractDnsName(data DATAELEMENT,actor ACTOR){
+  isOfType(ipaddress,DATAELEMENT) &&
+  DNSNAME==DATAELEMENT.name &&
+  ! isInList(DNSNAME,ACTOR.knownDnsNames)
+
+  add string ACTOR.knownDnsNames=DNSNAME
+};
+
+readFromRam(node NODE,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,NODE) &&
+  ( isInList(DATA,NODE.os.dataInRam) ||
+  isInList(DATA,NODE.os.applications.dataInRam) ||
+  isInList(DATA,NODE.os.vms.os.dataInRam) ||
+  isInList(DATA,NODE.os.vms.os.applications.dataInRam) ) &&
+  ( RES=extractUsernames(DATA,ACTOR) ||
+  RES=extractPasswords(DATA,ACTOR) ||
+  RES=extractIpAddresses(DATA,ACTOR) ||
+  RES=extractUsefulData(DATA,ACTOR) )
+
+  add RES
+};
+
+readAtomFromRam(node NODE,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,NODE) &&
+  DATAPOOL=findAllWhere(DATA,(isInList(DATA,NODE.os.dataInRam) || isInList(DATA,NODE.os.applications.dataInRam) || isInList(DATA,NODE.os.vms.os.dataInRam) || isInList(DATA,NODE.os.vms.os.applications.dataInRam))) &&
+  DELEMENT=pickFromList(DATAPOOL) &&
+  ( RES=extractUsernames(DELEMENT,ACTOR) ||
+  RES=extractPasswords(DELEMENT,ACTOR) ||
+  RES=extractIpAddresses(DELEMENT,ACTOR) ||
+  RES=extractUsefulData(DELEMENT,ACTOR) )
+
+  add RES
+};
+
+
+findRootNode(node NODE)
+{
+  isOfType(node,NODE) &&
+  ( ( NODE.cpu=="intel" && RESNODE==NODE ) ||
+  ( NODE.cpu=="virtual" && isInList(NODE,HYPERVISOR.vms) && ROOTNODE.os==HYPERVISOR &&
+  ROOTNODE.cpu=="intel" && RESNODE==ROOTNODE ) )
+
+  return RESNODE
+};
+
+
+
+childApplication(application CHILD,application PARENT)
+{
+  ( isInList(CHILD,PARENT.applications) ) ||
+  ( isInList(MIDDLE,PARENT.applications) &&
+  childApplication(CHILD,MIDDLE) )
+};
+
+
+tryConnect(node SNODE,actor ACTOR,interface SIF,ipAddress SIP,node DNODE,interface DIF,ipAddress DIP,port DPORT,protocol PROTO)
+{
+  isOfType(node,DNODE) &&
+  isOfType(node,SNODE) &&
+  isOfType(actor,ACTOR) &&
+  isInList(RCENODE,SNODE.rceRights)&&
+  RCENODE.actor==ACTOR &&
+// find the node belonging to the destination ip
+  isInList(DIP,DIPADDRESS.value) &&
+  isInList(DIPADDRESS,DIF.ipAddress) &&
+  isInList(DIF,DNODE.myInterfaces) &&
+// check if they are in the same subnet else check via checkfw
+  ( ( isInList(THENET,SNODE.belongsToSubnet) && isInList(THENET,DNODE.belongsToSubnet) ) ||
+  ( isInList(SIF,SNODE.myInterfaces) &&
+  isInList(SIPADDRESS,SIF.ipAddress) &&
+  checkfw(SIPADDRESS,DIPADDRESS,DPORT) ) )
+};
+
+checkfw(ipAddress SIP,ipAddress DIP,port DPORT)
+{
+  isOfType(fwallow,FWRULE) &&
+  isInList(SIP,FWRULE.ips) &&
+  isInList(DIP,FWRULE.ips) &&
+  isInList(DPORT,FWRULE.ports)
+};
+
+adAuthenticate(node SNODE,username USERNAME,password PASSWORD)
+{
+  APP.type=="activeDirectory" &&
+  isInList(PORT,APP.kerberosPort) &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  tryConnect(SNODE,ACTOR,SIF,SIP,DNODE,DIF,IP,PORT,E) &&
+// integrate the db check here
+  isInList(UUNAME,APP.knownUsernames.name) &&
+  isInList(UPW,APP.knownPasswords.pw) &&
+  isInList(UUNAME,APP.connectedDB.userUsername) &&
+  isInList(UPW,APP.connectedDB.userPassword) &&
+  isInList(UNAMEtoCheck,APP.connectedDB.storedData) &&
+  isOfType(username,UNAMEtoCheck) &&
+  isInList(PWtoCheck,APP.connectedDB.storedData) &&
+  isOfType(password,PWtoCheck) &&
+  UNAMEtoCheck.name==USERNAME &&
+  PWtoCheck.pw==PASSWORD
+};

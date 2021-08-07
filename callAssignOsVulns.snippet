@@ -1,0 +1,52 @@
+$vulnerabilities$=none;
+$potentialVulns$=none;
+if($curOS$ == xen){
+  $potentialVulns$=$vulnsOsXen$;
+};
+if($curOS$ == windows){
+  $potentialVulns$=$vulnsOsWindows$;
+};
+if($curOS$ == ubuntu){
+  $potentialVulns$=$vulnsOsUbuntu$;
+};
+if($curOS$ == windowsClient){
+  $potentialVulns$=$vulnsOsWindowsClient$;
+};
+if($curOS$ == ubuntuClient){
+  $potentialVulns$=$vulnsOsUbuntuClient$;
+};
+
+if($potentialVulns$ != none){
+  for($potVuln$ in $potentialVulns$){
+    $curVuln$=[$potVuln$];
+    $curVuln$+=["none"];
+    if($potVuln$ == "privEscVuln"){
+      $curProb$=$privEscVulnProb$;
+    };
+    if($potVuln$ == "g2hReadEscalation"){
+      $curProb$=$g2hReadEscalationProb$;
+    };
+    if($potVuln$ == "g2hRceEscalation"){
+      $curProb$=$g2hRceEscalationProb$;
+    };
+    if($potVuln$ == "eternalBlue"){
+      $curProb$=$eternalBlueProb$;
+    };
+    if($potVuln$ == "intraSubVulnA"){
+      $curProb$=$intraSubVulnAProb$;
+    };
+    if($potVuln$ == "intraSubVulnB"){
+      $curProb$=$intraSubVulnBProb$;
+    };
+    $outcome$=$PROB($curVuln$,$curProb$)$;
+    if($outcome$ != "none"){
+      if($vulnerabilities$ != none){
+        $vulnerabilities$+=[$outcome$];
+      };
+      if($vulnerabilities$ == none){
+        $vulnerabilities$=[$outcome$];
+      };
+
+    };
+  };
+};

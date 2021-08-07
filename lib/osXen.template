@@ -1,0 +1,40 @@
+init(NAME,HOSTIF,CREDS,TYPE,POOL,VULNS,PARAMS,NRWKT,PRWKT);
+
+string type="xen";
+string family="linux";
+string name=$NAME$;
+interface[] myInterfaces=$HOSTIF$;
+//string hasVuln="privEscVuln";
+//string hasVuln="g2hReadEscalation";
+//string hasVuln="g2hRceEscalation";
+if($VULNS$ != none){
+  string[] hasVuln=$VULNS$;
+};
+
+if($PARAMS$ != none){
+  string[] parameters=$PARAMS$;
+};
+
+// The following attributes should be assigned at a certain point, but currently not at initialization
+// credential[] acceptedCredentials=BLA;
+// usefulData[] dataStored=X;
+// usefulData[] dataRam=Y;
+// string[] parameters=K; (e.g. remoteShell)
+string remoteShellPort="22";
+
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+if($CREDS$ == none){
+  credential tmpInitCred=new credential("defCred$SELF$","defUname$SELF$","defPw$SELF$",$TYPE$,$NRWKT$,$PRWKT$);
+  credential acceptedCredentials=$SELF$.tmpInitCred;
+  password dataInRam=$SELF$.tmpInitCred.password;
+  username dataStored=$SELF$.tmpInitCred.username;
+};
+if($CREDS$ != none){
+  credential[] tmpInitCred=$CREDS$;
+  credential[] acceptedCredentials=$CREDS$;
+  password dataInRam=$SELF$.tmpInitCred.password;
+  username dataStored=$SELF$.tmpInitCred.username;
+};

@@ -1,0 +1,53 @@
+//potential apps
+
+if($scenarioSize$ == "s"){
+  $selectedDmzApps$=[appWebServer,appTcServer,appExchangeServer,appWebServer];
+
+  $selectedServerApps$=[appAdServer,appTcServer,appMarketingServer,appAccountingServer,appSapServer,appBackupServer,appTcServer,appMarketingServer,appAccountingServer,appSapServer];
+
+  $selectedEngineeringServerApps$=[appSapServer,appGitServer,appLicensingServer,appSapServer,appGitServer];
+};
+if($scenarioSize$ == "m"){
+  $selectedDmzApps$=[appWebServer,appTcServer,appExchangeServer,appWebServer,appWebServer,appTcServer];
+
+  $selectedServerApps$=[appAdServer,appTcServer,appMarketingServer,appAccountingServer,appSapServer,appBackupServer,appTcServer,appMarketingServer,appAccountingServer,appSapServer,appTcServer,appMarketingServer,appAccountingServer,appSapServer];
+
+  $selectedEngineeringServerApps$=[appSapServer,appGitServer,appLicensingServer,appSapServer,appGitServer,appLicensingServer,appSapServer];
+};
+if($scenarioSize$ == "l"){
+  $selectedDmzApps$=[appWebServer,appTcServer,appExchangeServer,appWebServer,appWebServer,appTcServer,appTcServer];
+
+  $selectedServerApps$=[appAdServer,appTcServer,appMarketingServer,appAccountingServer,appSapServer,appBackupServer,appTcServer,appMarketingServer,appAccountingServer,appSapServer,appTcServer,appMarketingServer,appAccountingServer,appSapServer,appTcServer,appMarketingServer,appAccountingServer];
+
+  $selectedEngineeringServerApps$=[appSapServer,appGitServer,appLicensingServer,appSapServer,appGitServer,appLicensingServer,appSapServer,appGitServer];
+};
+if($scenarioSize$ == "mixed"){
+  $numOfDmzApps$=$PROB([3,4,5,6])$;
+// Exchange is included anyway
+  $numOfServerApps$=$PROB([8,9,10,11,12,13,14,15])$;
+// Backup and AD are included anyway
+  $numOfEngineeringServerApps$=$PROB([5,6,7,8])$;
+
+  $potentialServerApps$=[appTcServer,appMarketingServer,appAccountingServer,appSapServer];
+  $potentialDmzApps$=[appWebServer,appTcServer];
+  $potentialEngineeringServerApps$=[appSapServer,appGitServer,appLicensingServer];
+
+
+  $selectedDmzApps$=[appExchangeServer];
+  for($I$ in range(1,$numOfDmzApps$)){
+    $tDmz$=$PROB($potentialDmzApps$)$;
+    $selectedDmzApps$+=[$tDmz$];
+  };
+
+  $selectedServerApps$=[appAdServer,appBackupServer];
+  for($I$ in range(1,$numOfServerApps$)){
+    $tServer$=$PROB($potentialServerApps$)$;
+    $selectedServerApps$+=[$tServer$];
+  };
+
+  for($I$ in range(1,$numOfEngineeringServerApps$)){
+    $tEngineeringServer$=$PROB($potentialEngineeringServerApps$)$;
+    $selectedEngineeringServerApps$+=[$tEngineeringServer$];
+  };
+  
+};

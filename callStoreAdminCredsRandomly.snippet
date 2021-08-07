@@ -1,0 +1,41 @@
+// this snippet will randomly deploy admin credentials from OSes and APPs into "dataRam" and "dataStored" of Admin Clients
+
+
+for($member$ in $dmzSNhosts$){
+//  credential dummy.stolenOsCreds=$member$.os.tmpInitCred;
+//  credential dummy.stolenAppCreds=$member$.os.applications.tmpAdminCred;
+  $CTR$+=[$member$.os.tmpInitCred];
+  $CTR$+=[$member$.os.applications.tmpAdminCred];
+};
+
+for($member$ in $serverSNhosts$){
+//  credential dummy.stolenOsCreds=$member$.os.tmpInitCred;
+//  credential dummy.stolenAppCreds=$member$.os.applications.tmpAdminCred;
+  $CTR$+=[$member$.os.tmpInitCred];
+  $CTR$+=[$member$.os.applications.tmpAdminCred];
+};
+
+for($member$ in $engineeringServerSNhosts$){
+//  credential dummy.stolenOsCreds=$member$.os.tmpInitCred;
+//  credential dummy.stolenAppCreds=$member$.os.applications.tmpAdminCred;
+  $CTR$+=[$member$.os.tmpInitCred];
+  $CTR$+=[$member$.os.applications.tmpAdminCred];
+};
+
+//what we do: for every item in CTR, there is a 20% chance that it is located on some admin client, either in RAM or on disk
+
+for($credInst$ in $CTR$){
+  $doit$=$PROB(["true","false"],[20])$;
+  if($doit$ == "true"){
+    $pickedAdmin$=$PROB($adminSNhosts$)$;
+    $pickedStore$=$PROB([ram,hdd])$;
+    if($pickedStore$ == ram){
+      credential $pickedAdmin$.os.dataInRam=$credInst$;
+    };
+    if($pickedStore$ == hdd){
+      credential $pickedAdmin$.os.dataStored=$credInst$;
+    };
+  };
+};
+
+

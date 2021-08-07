@@ -1,0 +1,4 @@
+init(IP);
+
+ipaddress ipAddress=$IP$;
+boolean allowsIpShuffle="true";

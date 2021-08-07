@@ -1,0 +1,132 @@
+init(NAME,SUBNET,PREFIX,COUNTER,OSTYPE,LDATA,ADMINCRED,CLIENTS,PWREUSE,REUSECHANCE,POOL,DBCREDS,LOCAL,OSVULNS,HOSTVULNS,OSPARAMS,SQLVULNS,APPVULNS,NRWKT,PRWKT);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+$osname$=$NAME$;
+$osname$+="Os";
+$appname$=$NAME$;
+$appname$+="App";
+subnet belongsToSubnet=$SUBNET$;
+string cpu="virtual";
+string canBeMigrated="true";
+if($HOSTVULNS$ != none){
+  string[] hasVuln=$HOSTVULNS$;
+};
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+if($OSTYPE$ == windows){
+  os os=new osWindows($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+if($OSTYPE$ == ubuntu){
+  os os=new osUbuntu($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+
+string os.parameters="remoteShell";
+
+application os.applications=new appGitServer($appname$,$SELF$.myInterfaces,$APPVULNS$);
+if($ADMINCRED$ != none){
+  credential[] os.applications.acceptedCredentials=$ADMINCRED$;
+  username os.applications.admin=$ADMINCRED$.username;
+  credential[] os.applications.tmpAdminCred=$ADMINCRED$;
+};
+// TODO, hier muss noch ein else hin, damit ggf erzeugt wird
+
+
+for($finCL$ in $CLIENTS$){
+  node tmp$finCL$Git$COUNTER$=$finCL$;
+  application tmp$finCL$gitClient=new appGenClient("gitClient");
+  application tmp$finCL$Git$COUNTER$.os.applications=$SELF$.tmp$finCL$gitClient;
+  interface tmp$finCL$gitClient.bindingIf=$finCL$.myInterfaces;
+
+  if($PWREUSE$ == "true"){
+    $mode$=$PROB(["reuse","create"],[$REUSECHANCE$])$;
+    if($mode$ == "reuse"){
+      credential tmp$finCL$Git$COUNTER$.tmpGit$COUNTER$cred=new credential("git$COUNTER$$finCL$cred",$SELF$.tmp$finCL$Git$COUNTER$.os.tmpInitCred.username.value,$SELF$.tmp$finCL$Git$COUNTER$.os.tmpInitCred.password.value,"user",0,0);
+      string tmp$finCL$Git$COUNTER$.gitCredReuse="ja";
+    };
+    if($mode$ != "reuse"){
+      credential tmp$finCL$Git$COUNTER$.tmpGit$COUNTER$cred=new credential("git$COUNTER$$finCL$cred","git$COUNTER$$finCL$user","git$COUNTER$$finCL$pw","user",0,0);
+      string tmp$finCL$Git$COUNTER$.gitCredReuse="nein";
+    };
+  };
+  if($PWREUSE$ != "true"){
+    credential tmp$finCL$Git$COUNTER$.tmpGit$COUNTER$cred=new credential("git$COUNTER$$finCL$cred","git$COUNTER$$finCL$user","git$COUNTER$$finCL$pw","user",0,0);
+    string tmp$finCL$Git$COUNTER$.gitCredReuse="nein";
+  };
+
+
+  credential tmp$finCL$gitClient.dataStored=$SELF$.tmp$finCL$Git$COUNTER$.tmpGit$COUNTER$cred;
+
+  ipaddress tmp$finCL$gitClient.dataStored=$SELF$.tmpIp;
+
+  credential[] os.applications.acceptedCredentials=$SELF$.tmp$finCL$Git$COUNTER$.tmpGit$COUNTER$cred;
+
+  fwallow tmp$finCL$Git$COUNTER$.os.communicationRules=new fwallow([$finCL$.myInterfaces.ipAddress,$SELF$.tmpIp],["443","22"]);
+};
+
+for($ITEM$ in $LDATA$){
+  $finCL$=$PROB($CLIENTS$)$;
+
+  usefulData tmp$ITEM$=$ITEM$;
+
+  username tmp$ITEM$.owner=$SELF$.tmp$finCL$Git$COUNTER$.tmpGit$COUNTER$cred.username;
+  username tmp$ITEM$.owner=$SELF$.os.applications.admin;
+  usefulData os.applications.dataLinked=$ITEM$;
+};
+
+$sqlUname$="sqlGit$COUNTER$Uname";
+$sqlUname$+=$SUBNET$;
+$sqlPw$="sqlGit$COUNTER$Pw";
+$sqlPw$+=$SUBNET$;
+
+if($DBCREDS$ != none){
+  credential tmpLinkCreds=$DBCREDS$;
+  usefulData[] os.applications.dataStored=$DBCREDS$;
+};
+if($DBCREDS$ == none){
+  if($LOCAL$ == "local"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"admin",$NRWKT$,$PRWKT$);
+  };
+  if($LOCAL$ == "create"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"admin",$NRWKT$,$PRWKT$);
+  };
+  if($LOCAL$ == "reuse"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"user",$NRWKT$,$PRWKT$);
+  };
+  usefulData[] os.applications.dataStored=$SELF$.tmpLinkCreds;
+};
+
+//$LOCAL$="local";
+
+if($LOCAL$ == "local"){
+// here comes the instance of the sql server within the same node
+  string weLocal="ja";
+  ipaddress os.applications.dataStored=$SELF$.tmpIp;
+  application tmpGitSql$COUNTER$=new appSqlServer("gitSql$COUNTER$",$SELF$.myInterfaces,$SQLVULNS$);
+  application os.applications=$SELF$.tmpGitSql$COUNTER$;
+
+
+  credential[] tmpGitSql$COUNTER$.acceptedCredentials=$SELF$.tmpLinkCreds;
+  credential[] tmpGitSql$COUNTER$.tmpAdminCred=$SELF$.tmpLinkCreds;
+  username tmpGitSql$COUNTER$.sqlAdmin=$SELF$.tmpLinkCreds.username;
+
+  if($LDATA$ != none){
+    for($ITEM$ in $LDATA$){
+      usefulData tmp$ITEM$=$ITEM$;
+      username tmp$ITEM$.owner=$SELF$.tmpLinkCreds.username;
+    };
+    usefulData[] tmpGitSql$COUNTER$.dataStored=$LDATA$;
+  };
+
+
+};

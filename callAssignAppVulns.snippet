@@ -1,0 +1,78 @@
+$appVulns$=none;
+$potentialVulns$=none;
+
+if($curAPP$ == appTcServer){
+  $potentialVulns$=$vulnsAppTc$;
+};
+if($curAPP$ == appExchangeServer){
+  $potentialVulns$=$vulnsAppEx$;
+};
+if($curAPP$ == appSapServer){
+  $potentialVulns$=$vulnsAppSap$;
+};
+if($curAPP$ == appGitServer){
+  $potentialVulns$=$vulnsAppGit$;
+};
+if($curAPP$ == appSqlServer){
+  $potentialVulns$=$vulnsAppSql$;
+};
+if($curAPP$ == appAccountingServer){
+  $potentialVulns$=$vulnsAppAccounting$;
+};
+if($curAPP$ == appMarketingServer){
+  $potentialVulns$=$vulnsAppMarketing$;
+};
+if($curAPP$ == appLicensingServer){
+  $potentialVulns$=$vulnsAppLicensing$;
+};
+if($curAPP$ == appBackupServer){
+  $potentialVulns$=$vulnsAppBackup$;
+};
+if($curAPP$ == appSmbServer){
+  $potentialVulns$=$vulnsAppSmb$;
+};
+
+
+if($potentialVulns$ != none){
+  for($potVuln$ in $potentialVulns$){
+    $curVuln$=[$potVuln$];
+    $curVuln$+=["none"];
+
+    if($potVuln$ == "tcPrivEscVuln"){
+      $curProb$=$tcPrivEscVulnProb$;
+    };
+    if($potVuln$ == "httpPutVuln"){
+      $curProb$=$httpPutVulnProb$;
+    };
+    if($potVuln$ == "jmxNoAuth"){
+      $curProb$=$jmxNoAuthProb$;
+    };
+
+    if($potVuln$ == "mailRCE"){
+      $curProb$=$mailRCEProb$;
+    };
+    if($potVuln$ == "defenderRCE"){
+      $curProb$=$defenderRCEProb$;
+    };
+    if($potVuln$ == "unauthedUserRce"){
+      $curProb$=$unauthedUserRceProb$;
+    };
+    if($potVuln$ == "cloudBackupDefaultCreds"){
+      $curProb$=$cloudBackupDefaultCredsProb$;
+    };
+    if($potVuln$ == "backupRce"){
+      $curProb$=$backupRceProb$;
+    };
+
+    $outcome$=$PROB($curVuln$,$curProb$)$;
+    if($outcome$ != "none"){
+      if($appVulns$ != none){
+        $appVulns$+=[$outcome$];
+      };
+      if($appVulns$ == none){
+        $appVulns$=[$outcome$];
+      };
+    };
+
+  };
+};

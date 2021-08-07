@@ -1,0 +1,40 @@
+$appParams$=none;
+$potentialParams$=none;
+
+if($curAPP$ == appTcServer){
+  $potentialParams$=$paramsAppTc$;
+};
+if($curAPP$ == appBackupServer){
+  $potentialParams$=$paramsAppBackup$;
+};
+
+
+if($potentialParams$ != none){
+  for($potParam$ in $potentialParams$){
+    $curParam$=[$potParam$];
+    $curParam$+=["none"];
+
+    if($potParam$ == "jmxEnabled"){
+      $curProb$=$jmxEnabledProb$;
+    };
+    if($potParam$ == "cloudBackupEnabled"){
+      $curProb$=$cloudBackupEnabledProb$;
+    };
+    if($potParam$ == "hasRceOnClients"){
+      $curProb$=$hasRceOnClientsProb$;
+    };
+
+
+    $outcome$=$PROB($curParam$,$curProb$)$;
+    if($outcome$ != "none"){
+      if($appParams$ != none){
+        $appParams$+=[$outcome$];
+      };
+      if($appParams$ == none){
+        $appParams$=[$outcome$];
+      };
+
+    };
+
+  };
+};

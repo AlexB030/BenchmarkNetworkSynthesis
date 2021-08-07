@@ -1,0 +1,202 @@
+init(NAME,LIVEMIGRATION,COLDANDIP,COLDMIGRATION,IPSHUFFLING,OSSHUFFLING,RESETTING);
+
+string name=$NAME$;
+string type="defender";
+boolean doesLiveMigration=$LIVEMIGRATION$;
+boolean doesColdAndIP=$COLDANDIP$;
+boolean doesColdMigration=$COLDMIGRATION$;
+boolean doesIpShuffling=$IPSHUFFLING$;
+boolean doesOsShuffling=$OSSHUFFLING$;
+boolean doesReset=$RESETTING$;
+
+
+
+osShuffle(node TARGETNODE)
+{
+  isOfType(node,TARGETNODE) &&
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="defender" &&
+  ACTOR.doesOsShuffling=="true" &&
+  TARGETNODE.canShuffleOs=="true" &&
+  OSPOOL=findAllWhere(X,(isInList(X,osPool.availableOs))) &&
+  NEWOS=pickFromList(OSPOOL) &&
+  RES=osShuffleWorker(TARGETNODE,NEWOS)
+
+  set RES
+};
+
+osShuffleWorker(node TARGETNODE,os NEWOS)
+{
+  CURRENTOS=TARGETNODE.os &&
+  CURIF=CURRENTOS.myInterfaces &&
+  CURAPP=CURRENTOS.applications &&
+  CURCONNECTION=CURRENTOS.interfaceConnection &&
+  CURUSER=CURRENTOS.rootUsername &&
+  CURPW=CURRENTOS.rootPassword
+
+  set username CURRENTOS.rootUsername=dummyUser
+  set password CURRENTOS.rootPassword=dummyPw
+  set interface CURRENTOS.myInterfaces=dummyIF
+  set connection CURRENTOS.interfaceConnection=dummyConnection
+  del application CURRENTOS.applications=ANY
+
+  set os TARGETNODE.os=NEWOS
+
+  set username NEWOS.rootUsername=CURUSER
+  set password NEWOS.rootPassword=CURPW
+  set connection NEWOS.interfaceConnection=CURCONNECTION
+  set interface NEWOS.myInterfaces=CURIF
+  add application NEWOS.applications=CURAPP
+};
+
+// tested working
+liveMigration(node TARGETVM)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="defender" &&
+  ACTOR.doesLiveMigration=="true" &&
+  isOfType(node,TARGETVM) &&
+  TARGETVM.cpu=="virtual" &&
+  TARGETVM.canBeMigrated=="true" &&
+//  isOfType(os,DESTINATION) &&
+//  DESTINATION.type=="xen" &&
+//  isInList(MIGRATIONPOOL,DESTINATION.migrationPool) &&
+  isInList(POOLID,TARGETVM.migrationPool) &&
+  isInList(TARGETVM,OLDXEN.vms) &&
+  MIGRATIONPOOL=findAllWhere(X,(isInList("xen",X.type) && X.migrationPool==POOLID && ! isInList(TARGETVM,X.vms))) &&
+  DESTINATION=pickFromList(MIGRATIONPOOL) &&
+  ! ( OLDXEN==DESTINATION ) &&
+
+  RES=liveMigrationWorker(TARGETVM,OLDXEN,DESTINATION)
+
+  set RES
+};
+
+liveMigrationWorker(node TARGETVM,os OLDXEN,os DESTINATION)
+{
+
+// we need to find the parent interface
+  isInList(DESTINATION,DESHOST.os) &&
+  DESHOST.belongsToSubnet==DESTSUBNET
+
+  add node DESTINATION.vms=TARGETVM
+  del node OLDXEN.vms=TARGETVM
+  set subnet TARGETVM.belongsToSubnet=DESTSUBNET
+
+};
+
+
+// tested working
+coldMigration(node TARGETVM)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="defender" &&
+  ACTOR.doesColdMigration=="true" &&
+  isOfType(node,TARGETVM) &&
+  TARGETVM.cpu=="virtual" &&
+  TARGETVM.canBeMigrated=="true" &&
+//  isOfType(os,DESTINATION) &&
+//  DESTINATION.type=="xen" &&
+//  isInList(MIGRATIONPOOL,DESTINATION.migrationPool) &&
+  isInList(POOLID,TARGETVM.migrationPool) &&
+  isInList(TARGETVM,OLDXEN.vms) &&
+  MIGRATIONPOOL=findAllWhere(X,(isInList("xen",X.type) && X.migrationPool==POOLID && ! isInList(TARGETVM,X.vms))) &&
+  DESTINATION=pickFromList(MIGRATIONPOOL) &&
+  ! ( OLDXEN==DESTINATION ) &&
+
+  RES=coldMigrationWorker(TARGETVM,OLDXEN,DESTINATION)
+
+  set RES
+};
+
+coldMigrationWorker(node TARGETVM,os OLDXEN,os DESTINATION)
+{
+
+// we need to find the parent interface
+  isInList(DESTINATION,DESHOST.os) &&
+  DESHOST.belongsToSubnet==DESTSUBNET
+
+  add node DESTINATION.vms=TARGETVM
+  del node OLDXEN.vms=TARGETVM
+  set subnet TARGETVM.belongsToSubnet=DESTSUBNET
+  del rceRight TARGETVM.rceRights=ANYRCERIGHT
+};
+
+// tested working
+ipShuffling(node TARGETVM,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="defender" &&
+  ACTOR.doesIpShuffling=="true" &&
+  isOfType(node,TARGETVM) &&
+  TARGETVM.cpu=="virtual" &&
+  TARGETVM.canBeMigrated=="true" &&
+  isOfType(node,TARGETVM) &&
+  TARGETVM.myInterfaces==TARGETIF &&
+  TARGETIF.ipAddress==TARGETIP &&
+  isOfType(interface,TARGETIF) &&
+  TARGETIF.allowsIpShuffle=="true" &&
+  IPVALUE=TARGETIP.value &&
+//  IPPOOL=findAllWhere(X,(isInList(X,ipPool.availableIp) && ! isInList(X,IF.ipAddress.value))) &&
+//  NEWIP=pickFromList(IPPOOL) &&
+//  ! isInList(NEWIP,IF.ipAddress.value)
+  isOfType(actor,ATTACKER) &&
+  ATTACKER.type=="attacker"
+
+  del string ATTACKER.knownIpAddressesStrings=IPVALUE
+};
+
+// tested working
+coldMigrationWithIpShuffle(node TARGETVM)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="defender" &&
+  ACTOR.doesColdAndIP=="true" &&
+  isOfType(node,TARGETVM) &&
+  TARGETVM.cpu=="virtual" &&
+  TARGETVM.canBeMigrated=="true" &&
+//  isOfType(os,DESTINATION) &&
+//  DESTINATION.type=="xen" &&
+//  isInList(MIGRATIONPOOL,DESTINATION.migrationPool) &&
+  isInList(POOLID,TARGETVM.migrationPool) &&
+  isInList(TARGETVM,OLDXEN.vms) &&
+  MIGRATIONPOOL=findAllWhere(X,(isInList("xen",X.type) && X.migrationPool==POOLID && ! isInList(TARGETVM,X.vms))) &&
+  DESTINATION=pickFromList(MIGRATIONPOOL) &&
+  ! ( OLDXEN==DESTINATION ) &&
+
+  RES=coldMigrationWithIpShuffleWorker(TARGETVM,OLDXEN,DESTINATION)
+
+  set RES
+};
+
+coldMigrationWithIpShuffleWorker(node TARGETVM,os OLDXEN,os DESTINATION)
+{
+
+// we need to find the parent interface
+  isInList(DESTINATION,DESHOST.os) &&
+  DESHOST.belongsToSubnet==DESTSUBNET &&
+  isInList(VMIF,TARGETVM.myInterfaces) &&
+  isInList(IPVALUE,VMIF.ipAddress.value) &&
+  isOfType(actor,ATTACKER) &&
+  ATTACKER.type=="attacker"
+
+  del string ATTACKER.knownIpAddressesStrings=IPVALUE
+  add node DESTINATION.vms=TARGETVM
+  del node OLDXEN.vms=TARGETVM
+  set subnet TARGETVM.belongsToSubnet=DESTSUBNET
+  del rceRight TARGETVM.rceRights=ANYRCERIGHT
+
+};
+
+// tested working - might be augmented with check for existing RCErights
+resetRCErights(node TARGETVM)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="defender" &&
+  ACTOR.doesReset=="true" &&
+  isOfType(node,TARGETVM) &&
+  TARGETVM.cpu=="virtual" &&
+  TARGETVM.canBeMigrated=="true"
+
+  del rceRight TARGETVM.rceRights=ANY
+};

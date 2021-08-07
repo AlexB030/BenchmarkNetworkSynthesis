@@ -1,0 +1,52 @@
+init(NAME,SUBNET,PREFIX,COUNTER,OSTYPE,LDATA,CLIENTS,POOL,OSVULNS,HOSTVULNS,OSPARAMS,APPVULNS,NRWKT,PRWKT);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+$osname$=$NAME$;
+$osname$+="Os";
+$appname$=$NAME$;
+$appname$+="App";
+subnet belongsToSubnet=$SUBNET$;
+string cpu="virtual";
+string canBeMigrated="true";
+if($HOSTVULNS$ != none){
+  string[] hasVuln=$HOSTVULNS$;
+};
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+if($OSTYPE$ == windows){
+  os os=new osWindows($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+if($OSTYPE$ == ubuntu){
+  os os=new osUbuntu($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+
+string os.parameters="remoteShell";
+
+application os.applications=new appLicensingServer($appname$,$SELF$.myInterfaces,$APPVULNS$);
+
+if($LDATA$ != none){
+  usefulData[] os.applications.dataLinked=$LDATA$;
+};
+
+if($CLIENTS$ != none){
+  for($H$ in $CLIENTS$){
+    node tmp$H$=$H$;
+    application tmp$H$licensingClient=new appGenClient("licensingClient");
+    interface tmp$H$licensingClient.bindingIf=$H$.myInterfaces;
+    ipaddress tmp$H$licensingClient.dataStored=$SELF$.tmpIp;
+
+    fwallow tmp$H$licensingClient.communicationRules=new fwallow([$H$.myInterfaces.ipAddress,$SELF$.tmpIp],["2337"]);
+    application tmp$H$.os.applications=$SELF$.tmp$H$licensingClient;
+  };
+};

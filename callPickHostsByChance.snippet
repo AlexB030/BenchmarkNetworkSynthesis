@@ -1,0 +1,23 @@
+$finClientList$=none;
+
+$atLeastOne$="false";
+
+for($CL$ in $potentialClients$){
+  $included$=$PROB(["yes","no"],$pickChance$)$;
+
+  if($included$ == "yes"){
+    if($finClientList$ != none){
+      $finClientList$+=[$CL$];
+    };
+    if($finClientList$ == none){
+      $finClientList$=[$CL$];
+    };
+
+    $atLeastOne$="true";
+  };
+};
+
+if($atLeastOne$ == "false"){
+  $theOne$=$PROB($potentialClients$)$;
+  $finClientList$=[$theOne$];
+};

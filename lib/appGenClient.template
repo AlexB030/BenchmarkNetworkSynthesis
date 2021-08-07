@@ -1,0 +1,4 @@
+init(NAME);
+
+string name=$NAME$;
+//usefulData dataInRam=new usefulData("appmeltRam","lala",10,10);

@@ -1,0 +1,145 @@
+// definition of subnet prefixes
+$remoteSNprefix$="10.0.1.";
+$internetSNprefix$="99.0.23.";
+$dmzSNprefix$="10.0.2.";
+$serverSNprefix$="10.0.3.";
+$printerSNprefix$="10.0.4.";
+$engineeringClientSNprefix$="10.0.5.";
+$engineeringServerSNprefix$="10.0.6.";
+$productionSNprefix$="10.0.7.";
+$marketingSNprefix$="10.0.8.";
+$accountingSNprefix$="10.0.9.";
+$adminSNprefix$="10.0.10.";
+
+subnet remoteSN=new subnet("remoteClients","client","remote");
+subnet internetSN=new subnet("internet","mixed","remote");
+subnet dmzSN=new subnet("dmz","server","local");
+subnet serverSN=new subnet("servers","server","local");
+subnet printerSN=new subnet("printers","printer","local");
+subnet engineeringClientSN=new subnet("engineeringClients","client","local");
+subnet engineeringServerSN=new subnet("engineeringServers","server","local");
+subnet productionSN=new subnet("production","mixed","local");
+
+
+//appending static subnets to list of subnets
+$ExisitingSubnets$=[internetSN,dmzSN,serverSN,printerSN,engineeringClientSN,engineeringServerSN,remoteSN,productionSN];
+
+// creating the variable subnets in Lan A
+for($I$ in $ClientNetsInLanA$){
+  subnet $I$=new subnet("$I$","client","local");
+  $ExisitingSubnets$+=$I$;
+};
+
+//creating hosts in different subnets and giving them IPs
+
+$cSN$=remoteSN;
+for($I$ in range(1,$NremoteSN$)){
+  include("callAssignHostVulns.snippet");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$,$remoteSNprefix$,$remoteIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $remoteSNhosts$+=[host$I$$cSN$];
+  $remoteIPcounter$+=1;
+};
+
+$cSN$=internetSN;
+for($I$ in range(1,$NinternetSN$)){
+  include("callAssignHostVulns.snippet");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$,$internetSNprefix$,$internetIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $internetSNhosts$+=[host$I$$cSN$];
+  $internetIPcounter$+=1;
+};
+
+// manual insertion of attacker host
+$hostVulns$=none;
+node attackerHost=new node("attackerHost",internetSN,$internetSNprefix$,$internetIPcounter$,"intel",$hostVulns$);
+$allHosts$+=[attackerHost];
+$internetSNhosts$+=[attackerHost];
+$internetIPcounter$+=1;
+
+$cSN$=dmzSN;
+for($I$ in range(1,$NdmzSN$)){
+  include("callAssignHostVulns.snippet");
+  subnet $cSN$$I$=new subnet("dmz$I$","server","local");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$$I$,$dmzSNprefix$,$dmzIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $dmzSNhosts$+=[host$I$$cSN$];
+  $dmzSNXenhosts$+=[host$I$$cSN$];
+  $dmzIPcounter$+=1;
+};
+
+$cSN$=serverSN;
+for($I$ in range(1,$NserverSN$)){
+  include("callAssignHostVulns.snippet");
+  subnet $cSN$$I$=new subnet("servers$I$","server","local");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$$I$,$serverSNprefix$,$serverIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $serverSNhosts$+=[host$I$$cSN$];
+  $serverSNXenhosts$+=[host$I$$cSN$];
+  $serverIPcounter$+=1;
+};
+
+$cSN$=printerSN;
+for($I$ in range(1,$NprinterSN$)){
+  include("callAssignHostVulns.snippet");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$,$printerSNprefix$,$printerIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $printerSNhosts$+=[host$I$$cSN$];
+  $printerIPcounter$+=1;
+};
+
+$cSN$=engineeringClientSN;
+for($I$ in range(1,$NengineeringClientSN$)){
+  include("callAssignHostVulns.snippet");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$,$engineeringClientSNprefix$,$engineeringClientIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $engineeringClientSNhosts$+=[host$I$$cSN$];
+  $engineeringClientIPcounter$+=1;
+};
+
+$cSN$=engineeringServerSN;
+for($I$ in range(1,$NengineeringServerSN$)){
+  include("callAssignHostVulns.snippet");
+  subnet $cSN$$I$=new subnet("eingineeringServers$I$","server","local");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$$I$,$engineeringServerSNprefix$,$engineeringServerIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $engineeringServerSNhosts$+=[host$I$$cSN$];
+  $engineeringServerSNXenhosts$+=[host$I$$cSN$];
+  $engineeringServerIPcounter$+=1;
+};
+
+$cSN$=productionSN;
+for($I$ in range(1,$NproductionSN$)){
+  include("callAssignHostVulns.snippet");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$,$productionSNprefix$,$productionIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $productionSNhosts$+=[host$I$$cSN$];
+  $productionIPcounter$+=1;
+};
+
+$cSN$=accountingSN;
+for($I$ in range(1,$NaccountingSN$)){
+  include("callAssignHostVulns.snippet");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$,$accountingSNprefix$,$accountingIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $accountingSNhosts$+=[host$I$$cSN$];
+  $accountingIPcounter$+=1;
+};
+
+$cSN$=adminSN;
+for($I$ in range(1,$NadminSN$)){
+  include("callAssignHostVulns.snippet");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$,$adminSNprefix$,$adminIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $adminSNhosts$+=[host$I$$cSN$];
+  $adminIPcounter$+=1;
+};
+
+$cSN$=marketingSN;
+for($I$ in range(1,$NmarketingSN$)){
+  include("callAssignHostVulns.snippet");
+  node host$I$$cSN$=new node("host$I$$cSN$",$cSN$,$marketingSNprefix$,$marketingIPcounter$,"intel",$hostVulns$);
+  $allHosts$+=[host$I$$cSN$];
+  $marketingSNhosts$+=[host$I$$cSN$];
+  $marketingIPcounter$+=1;
+};

@@ -1,0 +1,51 @@
+init(NAME,SUBNET,PREFIX,COUNTER,OSTYPE,SDATA,CREDS,POOL,OSVULNS,HOSTVULNS,OSPARAMS,APPVULNS,NRWKT,PRWKT);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+$osname$=$NAME$;
+$osname$+="Os";
+$appname$=$NAME$;
+$appname$+="App";
+subnet belongsToSubnet=$SUBNET$;
+string cpu="virtual";
+string canBeMigrated="false";
+if($HOSTVULNS$ != none){
+  string[] hasVuln=$HOSTVULNS$;
+};
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+if($OSTYPE$ == windows){
+  os os=new osWindows($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+if($OSTYPE$ == ubuntu){
+  os os=new osUbuntu($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+
+string os.parameters="remoteShell";
+
+application os.applications=new appSqlServer($appname$,$SELF$.myInterfaces,$APPVULNS$);
+if($CREDS$ != none){
+  credential[] os.applications.acceptedCredentials=$CREDS$;
+  username os.applications.sqlAdmin=$CREDS$.username;
+  credential[] os.applications.tmpAdminCred=$CREDS$;
+};
+
+if($SDATA$ != none){
+  for($ITEM$ in $SDATA$){
+    usefulData tmp$ITEM$=$ITEM$;
+    username tmp$ITEM$.owner=$SELF$.os.applications.acceptedCredentials.username;
+  };
+  usefulData[] os.applications.dataStored=$SDATA$;
+};
+
+// no fwallow rules, since DB should only be accessible in corresponding subnet

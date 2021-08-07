@@ -1,0 +1,48 @@
+$osParams$=none;
+$potentialParams$=none;
+if($curOS$ == xen){
+  $potentialParams$=$paramsOsXen$;
+};
+if($curOS$ == windows){
+  $potentialParams$=$paramsOsWindows$;
+};
+if($curOS$ == ubuntu){
+  $potentialParams$=$paramsOsUbuntu$;
+};
+if($curOS$ == windowsClient){
+  $potentialParams$=$paramsOsWindows$;
+};
+if($curOS$ == ubuntuClient){
+  $potentialParams$=$paramsOsUbuntu$;
+};
+
+if($potentialParams$ != none){
+  for($potParam$ in $potentialParams$){
+    $curParam$=[$potParam$];
+    $curParam$+=["none"];
+
+    if($potParam$ == "remoteShell"){
+      $curProb$=$remoteShellProb$;
+    };
+    if($potParam$ == "smb"){
+      $curProb$=$smbProb$;
+    };
+    if($potParam$ == "usbExchange"){
+      $curProb$=$usbExchangeProb$;
+    };
+    if($potParam$ == "usbExchangeToProduction"){
+      $curProb$=$usbExchangeToProductionProb$;
+    };
+
+    $outcome$=$PROB($curParam$,$curProb$)$;
+    if($outcome$ != "none"){
+      if($osParams$ != none){
+        $osParams$+=[$outcome$];
+      };
+      if($osParams$ == none){
+        $osParams$=[$outcome$];
+      };
+
+    };
+  };
+};

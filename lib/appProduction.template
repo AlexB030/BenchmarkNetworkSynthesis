@@ -1,0 +1,17 @@
+init(NAME,IFS,VULNS);
+
+//this is the general name which is not used for any evaluation
+string name=$NAME$;
+
+//this is to determine whether a called function is applicable to the current application
+string[] type="productionSystem";
+
+//listening Port is needed for networked applications, if not applicable, then 0
+string[] listeningPort=["1873"];
+
+//the interfaces for this application
+interface[] bindingIf=$IFS$;
+
+if($VULNS$ != none){
+  string[] hasVuln=$VULNS$;
+};

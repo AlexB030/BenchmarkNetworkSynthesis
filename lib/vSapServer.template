@@ -1,0 +1,121 @@
+init(NAME,SUBNET,PREFIX,COUNTER,LDATA,ADMINCRED,CLIENTS,PWREUSE,REUSECHANCE,POOL,DBCREDS,OSVULNS,HOSTVULNS,OSPARAMS,APPVULNS,NRWKT,PRWKT);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+$osname$=$NAME$;
+
+$osname$+="Os";
+$appname$=$NAME$;
+$appname$+="App";
+subnet belongsToSubnet=$SUBNET$;
+string cpu="virtual";
+string canBeMigrated="false";
+if($HOSTVULNS$ != none){
+  string[] hasVuln=$HOSTVULNS$;
+};
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+os os=new osWindows($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+
+string os.parameters="remoteShell";
+
+application os.applications=new appSapServer($appname$,$SELF$.myInterfaces,APPVULNS);
+ipaddress os.applications.dataStored=$SELF$.tmpIp;
+if($ADMINCRED$ != none){
+  credential[] os.applications.acceptedCredentials=$ADMINCRED$;
+  credential[] os.applications.tmpAdminCred=$ADMINCRED$;
+  credential[] tmpAdminCred=$ADMINCRED$;
+  username os.applications.admin=$ADMINCRED$.username;
+};
+
+
+for($finCL$ in $CLIENTS$){
+  node tmp$finCL$Sap$COUNTER$=$finCL$;
+
+  if($PWREUSE$ == "true"){
+    $mode$=$PROB(["reuse","create"],[$REUSECHANCE$])$;
+    if($mode$ == "reuse"){
+      credential tmp$finCL$Sap$COUNTER$.tmpSap$COUNTER$cred=new credential("sap$COUNTER$$finCL$cred",$SELF$.tmp$finCL$Sap$COUNTER$.os.tmpInitCred.username.value,$SELF$.tmp$finCL$Sap$COUNTER$.os.tmpInitCred.password.value,"user",0,0);
+      string tmp$finCL$Sap$COUNTER$.sapCredReuse="ja";
+    };
+    if($mode$ != "reuse"){
+      credential tmp$finCL$Sap$COUNTER$.tmpSap$COUNTER$cred=new credential("sap$COUNTER$$finCL$cred","sap$COUNTER$$finCL$user","sap$COUNTER$$finCL$pw","user",0,0);
+      string tmp$finCL$Sap$COUNTER$.sapCredReuse="nein";
+    };
+  };
+  if($PWREUSE$ != "true"){
+    credential tmp$finCL$Sap$COUNTER$.tmpSap$COUNTER$cred=new credential("sap$COUNTER$$finCL$cred","sap$COUNTER$$finCL$user","sap$COUNTER$$finCL$pw","user",0,0);
+    string tmp$finCL$Sap$COUNTER$.sapCredReuse="nein";
+  };
+
+
+  credential tmp$finCL$Sap$COUNTER$.os.dataStored=$SELF$.tmp$finCL$Sap$COUNTER$.tmpSap$COUNTER$cred;
+
+  ipaddress tmp$finCL$Sap$COUNTER$.os.dataStored=$SELF$.tmpIp;
+
+  credential[] os.applications.acceptedCredentials=$SELF$.tmp$finCL$Sap$COUNTER$.tmpSap$COUNTER$cred;
+
+  fwallow tmp$finCL$Sap$COUNTER$.os.communicationRules=new fwallow([$finCL$.myInterfaces.ipAddress,$SELF$.tmpIp],["3200"]);
+};
+
+for($ITEM$ in $LDATA$){
+  $finCL$=$PROB($CLIENTS$)$;
+
+  usefulData tmp$ITEM$=$ITEM$;
+
+  username tmp$ITEM$.owner=$SELF$.tmp$finCL$Sap$COUNTER$.tmpSap$COUNTER$cred.username;
+  username tmp$ITEM$.owner=$SELF$.os.applications.admin;
+  usefulData os.applications.dataLinked=$ITEM$;
+};
+
+$sqlUname$="sqlSap$COUNTER$Uname";
+$sqlUname$+=$SUBNET$;
+$sqlPw$="sqlSap$COUNTER$Pw";
+$sqlPw$+=$SUBNET$;
+
+if($DBCREDS$ != none){
+  credential tmpLinkCreds=$DBCREDS$;
+  usefulData[] os.applications.dataStored=$DBCREDS$;
+};
+$LOCAL$="local";
+if($DBCREDS$ == none){
+  if($LOCAL$ == "local"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"admin",$NRWKT$,$PRWKT$);
+  };
+  if($LOCAL$ == "create"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"admin",$NRWKT$,$PRWKT$);
+  };
+  if($LOCAL$ == "reuse"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"user",$NRWKT$,$PRWKT$);
+  };
+  usefulData[] os.applications.dataStored=$SELF$.tmpLinkCreds;
+};
+
+
+// here comes the instance of the sql server within the same node
+string maxDBlocal="yes";
+application tmpSapMdb$COUNTER$=new appMaxDbServer("sapMdb$COUNTER$",$SELF$.myInterfaces);
+application os.applications=$SELF$.tmpSapMdb$COUNTER$;
+
+
+credential[] tmpSapMdb$COUNTER$.acceptedCredentials=$SELF$.tmpLinkCreds;
+credential[] tmpSapMdb$COUNTER$.tmpAdminCred=$SELF$.tmpLinkCreds;
+username tmpSapMdb$COUNTER$.mdbAdmin=$SELF$.tmpLinkCreds.username;
+
+if($LDATA$ != none){
+  for($ITEM$ in $LDATA$){
+    usefulData tmp$ITEM$=$ITEM$;
+    username tmp$ITEM$.owner=$SELF$.tmpLinkCreds.username;
+  };
+  usefulData[] tmpSapMdb$COUNTER$.dataStored=$LDATA$;
+};

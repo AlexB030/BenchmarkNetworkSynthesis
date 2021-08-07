@@ -1,0 +1,66 @@
+init(NAME,SUBNET,PREFIX,COUNTER,OSTYPE,LDATA,CLIENTS,POOL,LOCAL,OSVULNS,HOSTVULNS,OSPARAMS,NRWKT,PRWKT);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+$osname$=$NAME$;
+$osname$+="Os";
+$appname$=$NAME$;
+$appname$+="App";
+subnet belongsToSubnet=$SUBNET$;
+string cpu="virtual";
+string canBeMigrated="true";
+if($HOSTVULNS$ != none){
+  string[] hasVuln=$HOSTVULNS$;
+};
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+if($OSTYPE$ == windows){
+  os os=new osWindows($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+if($OSTYPE$ == ubuntu){
+  os os=new osUbuntu($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+
+string os.parameters="remoteShell";
+
+application os.applications=new appWebServer($appname$,$SELF$.myInterfaces);
+
+
+$sqlUname$="sqlAcc$COUNTER$Uname";
+$sqlUname$+=$SUBNET$;
+$sqlPw$="sqlAcc$COUNTER$Pw";
+$sqlPw$+=$SUBNET$;
+
+if($LOCAL$ == "create"){
+  credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"admin",$NRWKT$,$PRWKT$);
+};
+if($LOCAL$ == "reuse"){
+  credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"user",$NRWKT$,$PRWKT$);
+};
+usefulData[] os.applications.dataStored=$SELF$.tmpLinkCreds;
+
+if($LDATA$ != none){
+  usefulData[] os.applications.dataLinked=$LDATA$;
+};
+
+if($CLIENTS$ != none){
+  for($H$ in $CLIENTS$){
+    node tmp$H$=$H$;
+    application tmp$H$webClient=new appGenClient("webHttpClient");
+    interface tmp$H$webClient.bindingIf=$H$.myInterfaces;
+    ipaddress tmp$H$webClient.dataStored=$SELF$.tmpIp;
+
+    fwallow tmp$H$webClient.communicationRules=new fwallow([$H$.myInterfaces.ipAddress,$SELF$.tmpIp],["80","443"]);
+    application tmp$H$.os.applications=$SELF$.tmp$H$webClient;
+  };
+};

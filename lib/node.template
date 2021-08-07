@@ -1,0 +1,19 @@
+init(NAME,SUBNET,PREFIX,COUNTER,ARCHITECTURE,VULNS);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+string cpu=$ARCHITECTURE$;
+subnet belongsToSubnet=$SUBNET$;
+
+//string hasVuln="meltdown";
+if($VULNS$ != none){
+  string[] hasVuln=$VULNS$;
+};

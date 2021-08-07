@@ -1,0 +1,4 @@
+init(ACTOR,APP);
+
+actor actor=$ACTOR$;
+application level=$APP$;

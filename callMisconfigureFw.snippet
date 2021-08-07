@@ -1,0 +1,174 @@
+// existing subnets
+// subnet remoteSN
+// subnet internetSN
+// subnet dmzSN
+// subnet serverSN
+// subnet printerSN
+// subnet engineeringClientSN
+// subnet engineeringServerSN
+// subnet productionSN
+
+$PortPool$=["1337","22","2337","25","3200","3306","3389","443","465","7270","80","8080","8443"];
+
+//determine number of misconfigurations for all subnet pairs
+
+$numFwErrorsInternetDmz$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$internetSNhosts$;
+$netB$=$dmzSNhosts$;
+$misconfigurations$=$numFwErrorsInternetDmz$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+$numFwErrorsDmzServer$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$dmzSNhosts$;
+$netB$=$serverSNhosts$;
+$misconfigurations$=$numFwErrorsDmzServer$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+$numFwErrorsAccountingServer$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$accountingSNhosts$;
+$netB$=$serverSNhosts$;
+$misconfigurations$=$numFwErrorsDmzServer$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+$numFwErrorsMarketingServer$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$marketingSNhosts$;
+$netB$=$serverSNhosts$;
+$misconfigurations$=$numFwErrorsDmzServer$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+$numFwErrorsAdminServer$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$adminSNhosts$;
+$netB$=$serverSNhosts$;
+$misconfigurations$=$numFwErrorsDmzServer$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+$numFwErrorsServerEngineeringserver$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$serverSNhosts$;
+$netB$=$engineeringServerSNhosts$;
+$misconfigurations$=$numFwErrorsDmzServer$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+$numFwErrorsEngineeringclientEngineeringserver$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$engineeringClientSNhosts$;
+$netB$=$engineeringServerSNhosts$;
+$misconfigurations$=$numFwErrorsDmzServer$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+$numFwErrorsProductionEngineeringserver$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$productionSNhosts$;
+$netB$=$engineeringServerSNhosts$;
+$misconfigurations$=$numFwErrorsDmzServer$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+$numFwErrorsProductionEngineeringclient$=$PROB([0,1,2,3,4,5,6,7,8])$;
+$netA$=$productionSNhosts$;
+$netB$=$engineeringClientSNhosts$;
+$misconfigurations$=$numFwErrorsDmzServer$;
+if($misconfigurations$ != 0){
+  for($I$ in range(1,$misconfigurations$)){
+    $hostA$=$PROB($netA$)$;
+    $hostB$=$PROB($netB$)$;
+    $Port$=$PROB($PortPool$)$;
+    fwallow misconf$hostA$$hostB$$I$=new fwallow([$hostA$.tmpIp,$hostB$.tmpIp],[$Port$]);
+  };
+};
+
+for($member$ in $dmzSNhosts$){
+  node dmzSN.member=$member$;
+};
+
+for($member$ in $printerSNhosts$){
+  node printerSN.member=$member$;
+};
+
+for($member$ in $remoteSNhosts$){
+  node remoteSN.member=$member$;
+};
+
+for($member$ in $internetSNhosts$){
+  node internetSN.member=$member$;
+};
+
+for($member$ in $serverSNhosts$){
+  node serverSN.member=$member$;
+};
+
+for($member$ in $accountingSNhosts$){
+  node accountingSN.member=$member$;
+};
+
+for($member$ in $marketingSNhosts$){
+  node marketingSN.member=$member$;
+};
+
+for($member$ in $adminSNhosts$){
+  node adminSN.member=$member$;
+};
+
+for($member$ in $engineeringServerSNhosts$){
+  node engineeringServerSN.member=$member$;
+};
+
+for($member$ in $engineeringClientSNhosts$){
+  node engineeringClientSN.member=$member$;
+};
+
+for($member$ in $productionSNhosts$){
+  node productionSN.member=$member$;
+};

@@ -1,0 +1,779 @@
+init(NAME);
+
+string name=$NAME$;
+
+// following are the default functions, that are not specific to instantiated applications but belong to OSes, Nodes etc. and do not require instantiation in form of an application.
+
+
+// legitimate way of accessing backups through the backup agent
+backupAgent(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="backupServer" &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  TARGETDATA==APP.dataLinked &&
+  TARGETDATA.owner==USER &&
+
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// backup adminsitration
+backupManager(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="backupServer" &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  APP.admin==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  TARGETDATA==APP.dataLinked &&
+
+
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// reflects capabiltiy of AD to adjust clietn configuration
+remoteConfigureClients(node TARGETNODE,os TARGETOS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="remoteHostManagement" &&
+  isInList(APP,REFOS.applications) &&
+  REFHOST.os==REFOS &&
+  isInList(RCE,REFHOST.rceRights) &&
+  RCE.level==REFOS &&
+  RCE.actor==ACTOR &&
+  APP.clients==TARGETNODE &&
+  TARGETNODE.os==TARGETOS &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+
+// accessing datasets in the generic accounting application
+accountingQuery(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="accountingServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  TARGETDATA.owner==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// administration access to data in the accounting application
+accountingManager(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="accountingServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  APP.admin==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// represent ability to remote control machines through rdp or ssh
+remoteShell(os TARGETOS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  TARGETOS.parameters=="remoteShell" &&
+  isInList(CRED,TARGETOS.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+//Check if attacker can reach target, check for all IP addresses in its interfaces
+  isInList(IF,TARGETOS.myInterfaces) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNSNAME &&
+  isInList(PORT,TARGETOS.remoteShellPort) &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNSNAME ) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  isInList(TARGETOS,NODE.os) &&
+  ! ( isInList(RCEOS,NODE.rceRights) &&
+  RCEOS.level==TARGETOS ) &&
+
+  create rceRight NEWRCE
+  add rceRight NODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+
+// function to extract assets from saved data (as part of being able to read all types of data, for example)
+readDataUsefulData(node NODE,usefulData STOLENDATA, actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,NODE) &&
+  isInList(RCE,NODE.rceRights) &&
+  RCE.level==PARENT &&
+
+  ( ( childApplication(CHILD,PARENT) && STOLENDATA==CHILD.dataStored ) || ( STOLENDATA==PARENT.dataStored ) ) &&
+
+  RES=extractUsefulData(STOLENDATA,ACTOR)
+
+  add RES
+};
+
+// function to extract usernames from saved data (as part of being able to read all types of data, for example)
+readDataUsernames(node NODE,usefulData STOLENDATA, actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,NODE) &&
+  isInList(RCE,NODE.rceRights) &&
+  RCE.level==PARENT &&
+
+  ( ( childApplication(CHILD,PARENT) && STOLENDATA==CHILD.dataStored ) || ( STOLENDATA==PARENT.dataStored ) ) &&
+
+  RES=extractUsernames(STOLENDATA,ACTOR)
+
+  add RES
+};
+
+// function to extract passwords from saved data (as part of being able to read all types of data, for example)
+readDataPasswords(node NODE,usefulData STOLENDATA, actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,NODE) &&
+  isInList(RCE,NODE.rceRights) &&
+  RCE.level==PARENT &&
+
+  ( ( childApplication(CHILD,PARENT) && STOLENDATA==CHILD.dataStored ) || ( STOLENDATA==PARENT.dataStored ) ) &&
+
+  RES=extractPasswords(STOLENDATA,ACTOR)
+
+  add RES
+};
+
+// function to extract addresses from saved data (as part of being able to read all types of data, for example)
+readDataIpAddresses(node NODE,usefulData STOLENDATA, actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,NODE) &&
+  isInList(RCE,NODE.rceRights) &&
+  RCE.level==PARENT &&
+
+  ( ( childApplication(CHILD,PARENT) && STOLENDATA==CHILD.dataStored ) || ( STOLENDATA==PARENT.dataStored ) ) &&
+
+  RES=extractIpAddresses(STOLENDATA,ACTOR)
+
+  add RES
+};
+
+// function to extract DNS names from saved data (as part of being able to read all types of data, for example)
+readDataDnsNames(node NODE,usefulData STOLENDATA, actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,NODE) &&
+  isInList(RCE,NODE.rceRights) &&
+  RCE.level==PARENT &&
+
+  ( ( childApplication(CHILD,PARENT) && STOLENDATA==CHILD.dataStored ) || ( STOLENDATA==PARENT.dataStored ) ) &&
+
+  RES=extractDnsName(STOLENDATA,ACTOR)
+
+  add RES
+};
+
+// function to emulate pings, yields one result per pingable host
+pingScan(os TARGET, actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(os,TARGET) &&
+  IF==TARGET.myInterfaces &&
+  IP==IF.ipAddress &&
+  IPVALUE==IP.value &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IPVALUE,ANY,E) &&
+  ! ( isInList(IPVALUE,ACTOR.knownIpAddressesStrings) )
+
+  add string ACTOR.knownIpAddressesStrings=IPVALUE
+};
+
+// reading ip addresses from arp cache (a host will have IP addresses from hosts in the same broadcast domain)
+arpCache(node NODE,node DNODE,ipAddress STOLENDATA,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,NODE) &&
+  isInList(RCE,NODE.rceRights) &&
+  RCE.actor==ACTOR &&
+  isInList(THENET,NODE.belongsToSubnet) &&
+  isInList(THENET,DNODE.belongsToSubnet) &&
+  isInList(DIF,DNODE.myInterfaces) &&
+  isInList(DIPADDRESS,DIF.ipAddress) &&
+  STOLENIPSTRING==DIPADDRESS.value &&
+  ! ( ACTOR.knownIpAddressesStrings==STOLENIPSTRING)
+
+  add string ACTOR.knownIpAddressesStrings= STOLENIPSTRING
+};
+
+// function to fetch mail from the mail server (authenticated)
+getMail(application APP,usefulData TARGETDATA,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="exchangeServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USER=CRED.username &&
+  TARGETDATA.owner==USER &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+
+// represents authenticated interaction with the git server. Here, to read data from a repo
+gitPushPull(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="gitServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  TARGETDATA.owner==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// assuming a platform like GitLab for example, there is usually a super user that administers all repos and has virtually unlimited access to all repos.
+gitManage(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="gitServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  APP.admin==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// function for the generic licensing server of CAD application in the production-engineering subnet.
+licenseRenew(node TARGETNODE,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="licenseServer" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ( isInList(TARGETDATA,APP.dataLinked) || isInList(TARGETDATA,IF.ipAddress) ) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+
+// legitimate access to data in the marketing application
+readMarketingData(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="marketingServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  TARGETDATA.owner==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// super user access to the marketing application for extensive data access
+manageMarketingData(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="marketingServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  APP.admin==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// equivalent to the SQL query, yet targeting the max db server that is used for SAP systems
+mdbQuery(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="maxDbServer" &&
+  isInList(TARGETDATA,APP.dataStored) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  TARGETDATA.owner==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// su access to the max db application with extended privileges... usually used for maintenance etc.
+mdbManagement(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="maxDbServer" &&
+  isInList(TARGETDATA,APP.dataStored) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  APP.mdbAdmin==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+//the engineering server can deploy to production which includes deployment of malicious code thus giving the attacker RCE if he/she can deploy via engineering server
+deployViaEngineeringServer(node SOURCENODE,node TARGETNODE,actor ACTOR){
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="productionSystem" &&
+  APP==TARGETOS.applications &&
+  TARGETOS==TARGETNODE.os &&
+  SOURCEOS==SOURCENODE.os &&
+  SOURCEAPP==SOURCEOS.applications &&
+  SOURCEAPP.type=="gitServer" &&
+  SRCE==SOURCENODE.rceRights &&
+  SRCE.actor==ACTOR &&
+  ( SRCE.level==SOURCEAPP || SRCE.level==SOURCEOS ) &&
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==TARGETOS ) &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SOURCENODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// this function depicts a git client's ability to check-in malicious code that stays undetected and is then deployed to production. naturally, the chance for this function to be successful is lower than that of deployViaEngineeringServer, since there, the attacker can deploy anything he/she wants
+smuggleMaliciousCodeToProduction(node SOURCENODE,node TARGETNODE,actor ACTOR){
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  RELAYAPP.type=="gitServer" &&
+  isInList(CRED,RELAYAPP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+  isInList(SOURCEOS,SOURCENODE.os) &&
+  isInList(SOURCEAPP,SOURCEOS.applications) &&
+  SOURCEAPP.name=="gitClient" &&
+
+  isInList(RELAYIF,RELAYAPP.bindingIf) &&
+  RELAYIF.ipAddress.value==IP &&
+  RELAYIF.ipAddress.name==DNS &&
+  RELAYIF==RELAYNODE.myInterfaces &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==RELAYAPP.listeningPort &&
+  tryConnect(SOURCENODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+// up until this point, we checked if attacker can reach gitRepo
+  TARGETOS==TARGETNODE.os &&
+  TARGETAPP==TARGETOS.applications &&
+  TARGETAPP.type=="productionSystem" &&
+  TARGETAPP.deployingPeers==RELAYNODE &&
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==TARGETOS ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// function to retrieve data from the SAP application
+sapFetch(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="sapServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  TARGETDATA.owner==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// managing the SAP application. yields higher access privileges than general sapFetch but not as high as accessing the complete MDB database, which may hold databses for several SAP instances.
+sapManage(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="sapServer" &&
+  isInList(TARGETDATA,APP.dataLinked) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  APP.admin==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// emulates access to a standard network file share as frequently occuring in windows networks
+smbAccess(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="smbServer" &&
+  isInList(TARGETDATA,APP.dataStored) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  TARGETDATA.owner==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// standard sql query to access information in database which is usually relayed through a dedicated application (e.g. marketing, accounting etc.)
+sqlQuery(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="sqlServer" &&
+  isInList(TARGETDATA,APP.dataStored) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  TARGETDATA.owner==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// super user access to database server, thus accessing all enclosed databases
+remoteDatabaseManagement(usefulData TARGETDATA,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="sqlServer" &&
+  isInList(TARGETDATA,APP.dataStored) &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  USER=CRED.username &&
+  APP.sqlAdmin==USER &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// default http query for webservers such as apache2 but also the tomcat
+httpGet(node TARGETNODE,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  ( APP.type=="webServer" || APP.type=="tomcatServer" ) &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ( isInList(TARGETDATA,APP.dataLinked) || isInList(TARGETDATA,IF.ipAddress) ) &&
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};

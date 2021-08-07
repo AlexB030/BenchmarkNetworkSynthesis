@@ -1,0 +1,606 @@
+init(NAME);
+
+string name=$NAME$;
+string type="attacker";
+//username[] knownUsernames=[insecureUsername];
+//password[] knownPasswords=[insecurePassword];
+string[] knownDnsNames=["google.com"];
+string[] knownIpAddressesStrings=["99.99.99.99"];
+//usefulData knownUsefulData=[];
+
+// This is the exploit to a generic vulnerability, allowing RCE on application level
+unauthedUserRce(node TARGETNODE,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  APP.hasVuln=="unauthedUserRce" &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==APP ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=APP
+};
+
+// This is the exploit to a generic vulnerability, allowing to read all data from an application
+unauthedUserRead(node TARGETNODE, usefulData STOLENDATA, actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  APP.hasVuln=="unauthedUserRead" &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  STOLENDATA==APP.dataStored &&
+
+  ! ( isInList(STOLENDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(STOLENDATA,ACTOR) ||
+  RES=extractUsernames(STOLENDATA,ACTOR) ||
+  RES=extractPasswords(STOLENDATA,ACTOR) ||
+  RES=extractIpAddresses(STOLENDATA,ACTOR) ||
+  RES=extractDnsName(STOLENDATA,ACTOR))
+
+  add RES
+};
+
+// This is the exploit to a generic vulnerability, allowing to read all data from a system
+unauthedAdminRead(node TARGETNODE, usefulData STOLENDATA, actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  APP.hasVuln=="unauthedUserRead" &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ( ( childApplication(CHILD,TARGETOS) &&
+  ( STOLENDATA==TARGETOS.dataStored || STOLENDATA==CHILD.dataStored ) ) ||
+  ( STOLENDATA==TARGETOS.dataStored ) ) &&
+
+  ! ( isInList(STOLENDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(STOLENDATA,ACTOR) ||
+  RES=extractUsernames(STOLENDATA,ACTOR) ||
+  RES=extractPasswords(STOLENDATA,ACTOR) ||
+  RES=extractIpAddresses(STOLENDATA,ACTOR) ||
+  RES=extractDnsName(STOLENDATA,ACTOR))
+
+  add RES
+};
+
+// This is the exploit to a generic vulnerability, allowing RCE on system level
+unauthedAdminRce(node TARGETNODE,os TARGETOS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  APP.hasVuln=="unauthedAdminRce" &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==APP ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+
+// Exploit and Vulnerability related to CVE-2016-7399 for Veritas Netbackup Appliance (metasploit code available)
+backupRce(node TARGETNODE,os TARGETOS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="backupServer" &&
+  APP.hasVuln=="backupRce" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETOS.family=="linux" &&
+  isInList(TARGETOS,TARGETNODE.os) &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// Related to CVE-2017-8895, another Veritas Backup System (metasploit code available), compromising clients through access to server instance
+backupClientOverAppliance(node TARGETNODE,os TARGETOS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="backupServer" &&
+  APP.parameters=="hasRceOnClients" &&
+  isInList(APP,RELAYOS.applications) &&
+  RELAYNODE.os==RELAYOS &&
+  isInList(TARGETNODE,APP.clients) &&
+  isInList(RCERIGHT,RELAYNODE.rceRights) &&
+  ( RCERIGHT.level==RELAYOS || RCERIGHT.level==APP ) &&
+  RCERIGHT.actor==ACTOR &&
+
+  isInList(IF,TARGETNODE.myInterfaces) &&
+  IF.ipAddress.value==IP &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(RELAYNODE,ACTOR,SIF,SIP,TARGETNODE,DIF,IP,PORT,E) &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==TARGETOS ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// This vulnerability and exploit redirects the backup to some malicious server on the internet, related to CVE-2017-6409. Another Veritas Product
+reconfigureBackupServer(ipaddress IP,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="backupServer" &&
+  APP.parameters=="cloudBackupEnabled" &&
+  APP.hasVuln=="cloudBackupDefaultCreds" &&
+
+  isInList(PORT,APP.cloudBackupPort) &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNSNAME &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNSNAME ) &&
+  tryConnect(SNODE,ACTOR,SIF,SIP,DNODE,DIF,IP,PORT,E) &&
+
+  TARGETDATA==APP.dataLinked &&
+
+  ! ( isInList(TARGETDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(TARGETDATA,ACTOR) ||
+  RES=extractUsernames(TARGETDATA,ACTOR) ||
+  RES=extractPasswords(TARGETDATA,ACTOR) ||
+  RES=extractIpAddresses(TARGETDATA,ACTOR) ||
+  RES=extractDnsName(TARGETDATA,ACTOR))
+
+  add RES
+};
+
+// Escalate Privileges on XEN (CVE-2016-6258)
+xenRceEscalation(node HOSTNODE, actor ACTOR){
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  GUESTNODE.os==GUESTOS &&
+  isOfType(node,GUESTNODE) &&
+  isInList(GRCE,GUESTNODE.rceRights) &&
+  GRCE.actor==ACTOR &&
+
+  isInList(GUESTNODE,HOSTOS.vms) &&
+  HOSTNODE.os==HOSTOS &&
+  HOSTOS.type=="xen" &&
+  HOSTOS.hasVuln=="g2hRceEscalation" &&
+  ! ( isInList(RCEOS,HOSTNODE.rceRights) &&
+  RCEOS.level==HOSTOS ) &&
+
+  create rceRight NEWRCE
+  add rceRight HOSTNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=HOSTOS
+};
+
+// CVE-2018-19962 allows guest to read from host
+xenReadEscalation(node TARGETNODE, usefulData STOLENDATA, actor ACTOR){
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  GUESTNODE.os==GUESTOS &&
+  isOfType(node,GUESTNODE) &&
+  isInList(GRCE,GUESTNODE.rceRights) &&
+  GRCE.actor==ACTOR &&
+
+  isInList(GUESTNODE,HOSTOS.vms) &&
+  HOSTNODE.os==HOSTOS &&
+  HOSTOS.type=="xen" &&
+  HOSTOS.hasVuln=="g2hReadEscalation" &&
+
+  ( TARGETNODE==HOSTNODE || isInList(TARGETNODE,HOSTOS.vms) ) &&
+
+  TARGETNODE.os==PARENT &&
+
+  ( ( childApplication(CHILD,PARENT) &&
+  ( STOLENDATA==PARENT.dataStored || STOLENDATA==CHILD.dataStored ) ) ||
+  ( STOLENDATA==PARENT.dataStored ) ) &&
+
+  ! ( isInList(STOLENDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(STOLENDATA,ACTOR) ||
+  RES=extractUsernames(STOLENDATA,ACTOR) ||
+  RES=extractPasswords(STOLENDATA,ACTOR) ||
+  RES=extractIpAddresses(STOLENDATA,ACTOR) ||
+  RES=extractDnsName(STOLENDATA,ACTOR))
+
+  add RES
+};
+
+// not related to a specific vulnerability but represents the ultimate result of the attacker getting RCE on Xen thus allowing to access filesystem and copy data from guests
+xenVmRead(node TARGETNODE, usefulData STOLENDATA, actor ACTOR){
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+
+  HOSTNODE.os==HOSTOS &&
+  HOSTOS.type=="xen" &&
+  isInList(GRCE,HOSTNODE.rceRights) &&
+  GRCE.actor==ACTOR &&
+
+  ( TARGETNODE==HOSTNODE || isInList(TARGETNODE,HOSTOS.vms) ) &&
+
+  TARGETNODE.os==PARENT &&
+
+  ( ( childApplication(CHILD,PARENT) &&
+  ( STOLENDATA==PARENT.dataStored || STOLENDATA==CHILD.dataStored ) ) ||
+  ( STOLENDATA==PARENT.dataStored ) ) &&
+
+  ! ( isInList(STOLENDATA,ACTOR.ANY) ) &&
+  ( RES=extractUsefulData(STOLENDATA,ACTOR) ||
+  RES=extractUsernames(STOLENDATA,ACTOR) ||
+  RES=extractPasswords(STOLENDATA,ACTOR) ||
+  RES=extractIpAddresses(STOLENDATA,ACTOR) ||
+  RES=extractDnsName(STOLENDATA,ACTOR))
+
+  add RES
+};
+
+// Represents a Bad USB attack on clients (https://www.bleepingcomputer.com/news/security/heres-a-list-of-29-different-types-of-usb-attacks/)
+usbExchangeClient(node SOURCE,node TARGET,actor ACTOR){
+
+  isOfType(node,TARGET) &&
+  TARGET.belongsToSubnet==TNET &&
+  TNET.type=="client" &&
+  TNET.location=="local" &&
+
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,SOURCE) &&
+  SOURCE.belongsToSubnet==SNET &&
+  SNET.type=="client" &&
+  SNET.location=="local" &&
+  isInList(SRCE,SOURCE.rceRights) &&
+
+  isInList(SOURCEOS,SOURCE.os) &&
+  SOURCEOS.parameters=="usbExchange" &&
+
+  isInList(TARGETOS,TARGET.os) &&
+  TARGETOS.parameters=="usbExchange" &&
+
+
+  ! ( isInList(TARGETOS,TARGET.rceRights) ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGET.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// Represents a Bad USB attack on clients in production subnet, seperated allow for different treatment with regard to chances and scope (https://www.bleepingcomputer.com/news/security/heres-a-list-of-29-different-types-of-usb-attacks/)
+usbExchangeToProduction(node SOURCE,node TARGET,actor ACTOR){
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isOfType(node,SOURCE) &&
+  SOURCE.belongsToSubnet==SNET &&
+  SNET.type=="client" &&
+  SNET.name=="engineeringClients" &&
+  SNET.location=="local" &&
+  isInList(SRCE,SOURCE.rceRights) &&
+  isInList(SOURCEOS,SOURCE.os) &&
+  SOURCEOS.parameters=="usbExchangeToProduction" &&
+
+  isOfType(node,TARGET) &&
+  TARGET.belongsToSubnet==TNET &&
+  TNET.type=="mixed" &&
+  TNET.name=="production" &&
+  TNET.location=="local" &&
+  TARGETOS=TARGET.os &&
+  TARGETOS.parameters=="usbExchangeToProduction" &&
+
+  create rceRight NEWRCE
+  add rceRight TARGET.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// Function representing a phishing attack. Not related to a CVE but the general chances that a user executes untrusted code.
+phishing(node TARGETNODE,os TARGETOS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.hasVuln=="phishing" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==TARGETOS ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// Exploit for vulnerability CVE-2017-5754
+meltdown(node TARGETNODE,os TARGETOS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  TARGETNODE.hasVuln=="meltdown" &&
+  TARGETNODE.os==TARGETOS &&
+  isOfType(node,TARGETNODE) &&
+  isInList(RCE,TARGETNODE.rceRights) &&
+  RCE.actor==ACTOR &&
+  ! ( TARGETOS.parameters=="meltdownPatch" ) &&
+  ROOTNODE=findRootNode(TARGETNODE) &&
+  RAMDATA=readAtomFromRam(ROOTNODE,ACTOR)
+
+  add RAMDATA
+};
+
+// Exploit that is related to vulnerability CVE-2017-0144 as used in WannaCry for example
+eternalBlue(node TARGETNODE,os TARGETOS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  TARGETOS.family=="windows" &&
+  TARGETOS.hasVuln=="eternalBlue" &&
+  TARGETOS.parameters=="smb" &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,TARGETOS.myInterfaces) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  isInList(PORT,TARGETOS.smbPort) &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==APP ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// snapd related vulnerability that allowed to escalate privileges for versions smaller than 2.37 (common up until ubuntu 18.10) (https://www.exploit-db.com/exploits/46362)
+privilegeEscalationUbuntu(os OS,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  OS.hasVuln=="privEscVuln" &&
+  OS.family=="linux" &&
+
+  isInList(OS,NODE.os) &&
+  isInList(RCE,NODE.rceRights) &&
+  ! ( isInList(RCEOS,NODE.rceRights) &&
+  RCEOS.level==OS ) &&
+
+  create rceRight NEWRCE
+  add rceRight NODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=OS
+};
+
+// Exploit inspired by CVE-2019-1405, CVE-2019-1322, and CVE-2019-1132
+privilegeEscalationWindows(os OS,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  OS.hasVuln=="privEscVuln" &&
+  OS.family=="windows" &&
+
+  isInList(OS,NODE.os) &&
+  isInList(RCE,NODE.rceRights) &&
+  ! ( isInList(RCEOS,NODE.rceRights) &&
+  RCEOS.level==OS ) &&
+
+  create rceRight NEWRCE
+  add rceRight NODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=OS
+};
+
+// related to Tomcat vulnerabilities CVE-2016-9775 and CVE2016-9774
+tomPrivEscalation(application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.hasVuln=="tcPrivEscVuln" &&
+
+  isInList(APP,OS.applications) &&
+  isInList(OS,NODE.os) &&
+  isInList(RCE,NODE.rceRights) &&
+  RCE.level==APP &&
+  ! ( isInList(RCEOS,NODE.rceRights) &&
+  RCEOS.level==OS ) &&
+
+  create rceRight NEWRCE
+  add rceRight NODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=OS
+};
+
+// related to vulnerabilities CVE-2017-12615 and CVE-2017-12617
+httpPutVulnerability(node TARGETNODE,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  APP.hasVuln=="httpPutVuln" &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==APP ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=APP
+};
+
+// This function exploits misconfiguration of JMX. Despite JRE and JMX related CVE entries (e.g. CVE-2016-3427) that would turn out to have the same effect. Misconfiguration of JMX apperas to be a bigger problem.
+jmxTomcatVulnerability(node NODE,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.parameters=="jmxEnabled" &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  ( ( APP.hasVuln=="jmxNoAuth" ) || ( APPUSERNAME==APP.jmxUsername &&
+  APPPASSWORD==APP.jmxPassword &&
+  isInList(APPUSERNAME,ACTOR.knownUsernames) &&
+  isInList(APPPASSWORD,ACTOR.knownPasswords) ) ) &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  isInList(APP,OS.applications) &&
+  isInList(OS,NODE.os) &&
+  ! ( isInList(RCEOS,NODE.rceRights) &&
+  RCEOS.level==OS ) &&
+
+  create rceRight NEWRCE
+  add rceRight NODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=OS
+};
+
+// this is the exploit for a generic vulnerability that requires network connectivity to the target so that spreading within the same subnet is more likely than beyond the subnet. It accounts for vulnerabilities that may result from unauthorized software installation
+intraSubVulnA(node SOURCENODE,node TARGETNODE,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  TARGETNODE.os==TARGETOS &&
+  SOURCENODE.os==SOURCEOS &&
+  isInList("intraSubVulnA",TARGETOS.hasVuln) &&
+  isInList("intraSubVulnA",SOURCEOS.hasVuln) &&
+  isInList(SRCE,SOURCENODE.rceRights) &&
+  SRCE.level==SOURCEOS &&
+  IF=TARGETNODE.myInterfaces &&
+  IF.ipAddress.value==IP &&
+  tryConnect(SOURCENODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==TARGETOS ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// this is the exploit for a generic vulnerability that requires network connectivity to the target so that spreading within the same subnet is more likely than beyond the subnet. It accounts for vulnerabilities that may result from unauthorized software installation
+intraSubVulnB(node SOURCENODE,node TARGETNODE,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  TARGETNODE.os==TARGETOS &&
+  SOURCENODE.os==SOURCEOS &&
+  isInList("intraSubVulnB",TARGETOS.hasVuln) &&
+  isInList("intraSubVulnB",SOURCEOS.hasVuln) &&
+  isInList(SRCE,SOURCENODE.rceRights) &&
+  SRCE.level==SOURCEOS &&
+  IF=TARGETNODE.myInterfaces &&
+  IF.ipAddress.value==IP &&
+  tryConnect(SOURCENODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==TARGETOS ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=TARGETOS
+};
+
+// related to Exchange Server vulnerability CVE-2018-8154
+sendMailExchangeRCE(node TARGETNODE,application APP,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="exchangeServer" &&
+  APP.hasVuln=="mailRCE" &&
+  isInList(CRED,APP.acceptedCredentials) &&
+  USERNAME=CRED.username.value &&
+  PASSWORD=CRED.password.value &&
+  isInList(USERNAME,ACTOR.knownUsernames) &&
+  isInList(PASSWORD,ACTOR.knownPasswords) &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  PORT==APP.listeningPort &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==APP ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=APP
+};
+
+// related to vulnerability CVE-2018-0986
+exchangeDefenderRCE(node TARGETNODE,actor ACTOR)
+{
+  isOfType(actor,ACTOR) &&
+  ACTOR.type=="attacker" &&
+  APP.type=="exchangeServer" &&
+  isInList(APP,TARGETOS.applications) &&
+  TARGETNODE.os==TARGETOS &&
+  isInList(IF,APP.bindingIf) &&
+  IF.ipAddress.value==IP &&
+  IF.ipAddress.name==DNS &&
+  APP.hasVuln=="defenderRCE" &&
+  ( ACTOR.knownIpAddressesStrings==IP || ACTOR.knownDnsNames==DNS ) &&
+  isInList(PORT,APP.listeningPort) &&
+  tryConnect(SNODE,ACTOR,A,B,C,D,IP,PORT,E) &&
+
+  ! ( isInList(RCEOS,TARGETNODE.rceRights) &&
+  RCEOS.level==APP ) &&
+
+  create rceRight NEWRCE
+  add rceRight TARGETNODE.rceRights=NEWRCE
+  set actor NEWRCE.actor=ACTOR
+  set application NEWRCE.level=APP
+};

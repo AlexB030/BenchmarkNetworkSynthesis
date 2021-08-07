@@ -1,0 +1,4 @@
+init(NAME,VALUE);
+
+string name=$NAME$;
+string value=$VALUE$;

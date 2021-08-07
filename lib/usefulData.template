@@ -1,0 +1,13 @@
+init(NAME,TYPE,INTERNALVALUE,EXTERNALVALUE);
+
+//The name of this data
+string name=$NAME$;
+
+//The type of this data, e.g., Emailaddresses,
+string type=$TYPE$;
+
+// The value of the data for internal use, e.g. quality of stolen phishing data
+int internalValue=$INTERNALVALUE$;
+
+// The revenue for the attacker when he steals this data. Used for the attack simulation.
+int externalValue=$EXTERNALVALUE$;

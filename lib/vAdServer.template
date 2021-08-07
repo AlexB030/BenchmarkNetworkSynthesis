@@ -1,0 +1,61 @@
+init(NAME,SUBNET,PREFIX,COUNTER,CLIENTS,ADMINS,POOL,OSVULNS,HOSTVULNS,OSPARAMS,NRWKT,PRWKT);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+$osname$=$NAME$;
+$osname$+="Os";
+$appname$=$NAME$;
+$appname$+="App";
+subnet belongsToSubnet=$SUBNET$;
+string cpu="virtual";
+string canBeMigrated="true";
+if($HOSTVULNS$ != none){
+  string[] hasVuln=$HOSTVULNS$;
+};
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+if($ADMINS$ != none){
+  for($adm$ in $ADMINS$){
+    credential adAdmins=$adm$.os.tmpInitCred;
+  };
+};
+
+os os=new osWindows($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+
+string os.parameters="remoteShell";
+
+application os.applications=new appAdServer($appname$,$SELF$.myInterfaces,$SELF$);
+
+credential[] os.applications.tmpAdminCred=$SELF$.os.tmpInitCred;
+
+credential os.acceptedCredentials=$SELF$.adAdmins;
+
+if($CLIENTS$ != none){
+  boolean autoAttach="true";
+  for($H$ in $CLIENTS$){
+    node os.applications.clients=$H$;
+    node tmp$H$=$H$;
+    application tmp$H$adClient=new appGenClient("adClient");
+    interface tmp$H$adClient.bindingIf=$H$.myInterfaces;
+    ipaddress tmp$H$adClient.dataStored=$SELF$.tmpIp;
+
+    fwallow tmp$H$adClient.communicationRules=new fwallow([$H$.myInterfaces.ipAddress,$SELF$.tmpIp],["1337"]);
+    application tmp$H$.os.applications=$SELF$.tmp$H$adClient;
+
+    credential[] tmp$H$.os.acceptedCredentials=$SELF$.adAdmins;
+
+  };
+};
+if($CLIENTS$ == none){
+  boolean autoAttach="false";
+};

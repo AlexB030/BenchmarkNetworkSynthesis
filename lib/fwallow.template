@@ -1,0 +1,4 @@
+init(SIP,DPORT);
+
+ipaddress[] ips=$SIP$;
+string[] ports=$DPORT$;

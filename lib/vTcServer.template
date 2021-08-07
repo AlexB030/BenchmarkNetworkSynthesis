@@ -1,0 +1,97 @@
+init(NAME,SUBNET,PREFIX,COUNTER,OSTYPE,LDATA,CLIENTS,LOCAL,CREDS,POOL,OSVULNS,APPVULNS,HOSTVULNS,PARAMSAPP,OSPARAMS,SQLVULNS,NRWKT,PRWKT);
+
+$curIp$=$PREFIX$;
+$curIp$+=$COUNTER$;
+$dnsname$=$NAME$;
+$dnsname$+=".";
+$dnsname$+=$SUBNET$;
+ipaddress tmpIp=new ipaddress($dnsname$,$curIp$);
+
+string name=$NAME$;
+interface myInterfaces=new interface($SELF$.tmpIp);
+string type=$SUBNET$.type;
+$osname$=$NAME$;
+$osname$+="Os";
+$appname$=$NAME$;
+$appname$+="App";
+$sqlUname$="sql$COUNTER$Uname";
+$sqlUname$+=$SUBNET$;
+$sqlPw$="sql$COUNTER$Pw";
+$sqlPw$+=$SUBNET$;
+subnet belongsToSubnet=$SUBNET$;
+string cpu="virtual";
+string canBeMigrated="true";
+if($HOSTVULNS$ != none){
+  string[] hasVuln=$HOSTVULNS$;
+};
+if($POOL$ != none){
+  string migrationPool=$POOL$;
+};
+
+if($OSTYPE$ == windows){
+  os os=new osWindows($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+if($OSTYPE$ == ubuntu){
+  os os=new osUbuntu($osname$,$SELF$.myInterfaces,none,"admin",$OSVULNS$,$OSPARAMS$,$NRWKT$,$PRWKT$);
+};
+
+string os.parameters="remoteShell";
+
+application tmpTcServer=new appTcServer($appname$,$SELF$.myInterfaces,$APPVULNS$,$PARAMSAPP$);
+
+application os.applications=$SELF$.tmpTcServer;
+
+if($LDATA$ != none){
+  usefulData[] os.applications.dataLinked=$LDATA$;
+};
+if($CREDS$ != none){
+  credential tmpLinkCreds=$CREDS$;
+  usefulData[] os.applications.dataStored=$CREDS$;
+};
+if($CREDS$ == none){
+  if($LOCAL$ == "local"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"admin",$NRWKT$,$PRWKT$);
+  };
+  if($LOCAL$ == "create"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"admin",$NRWKT$,$PRWKT$);
+  };
+  if($LOCAL$ == "reuse"){
+    credential tmpLinkCreds=new credential($sqlUname$,$sqlUname$,$sqlPw$,"user",$NRWKT$,$PRWKT$);
+  };
+  usefulData[] os.applications.dataStored=$SELF$.tmpLinkCreds;
+};
+
+if($CLIENTS$ != none){
+  for($H$ in $CLIENTS$){
+    node tmp$H$=$H$;
+    application tmp$H$webClient=new appGenClient("webTCClient");
+    interface tmp$H$webClient.bindingIf=$H$.myInterfaces;
+    ipaddress tmp$H$webClient.dataStored=$SELF$.tmpIp;
+
+    fwallow tmp$H$webClient.communicationRules=new fwallow([$H$.myInterfaces.ipAddress,$SELF$.tmpIp],["8080","8443"]);
+    application tmp$H$.os.applications=$SELF$.tmp$H$webClient;
+  };
+};
+
+if($LOCAL$ == "local"){
+// here comes the instance of the sql server within the same node
+  string weLocal="ja";
+  ipaddress os.applications.dataStored=$SELF$.tmpIp;
+  application tmpSql$COUNTER$=new appSqlServer("tmpSql$COUNTER$",$SELF$.myInterfaces,$SQLVULNS$);
+  application os.applications=$SELF$.tmpSql$COUNTER$;
+
+
+  credential[] tmpSql$COUNTER$.acceptedCredentials=$SELF$.tmpLinkCreds;
+  credential[] tmpSql$COUNTER$.tmpAdminCred=$SELF$.tmpLinkCreds;
+  username tmpSql$COUNTER$.sqlAdmin=$SELF$.tmpLinkCreds.username;
+
+  if($LDATA$ != none){
+    for($ITEM$ in $LDATA$){
+      usefulData tmp$ITEM$=$ITEM$;
+      username tmp$ITEM$.owner=$SELF$.tmpLinkCreds.username;
+    };
+    usefulData[] tmpSql$COUNTER$.dataStored=$LDATA$;
+  };
+
+
+};
